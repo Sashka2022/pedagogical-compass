@@ -1,0 +1,1826 @@
+<title>מצפן פדגוגי</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;600;700&family=Heebo:wght@300;400;500;600;700&display=swap">
+<style>
+  :root {
+    --bg: oklch(98% 0.006 242);
+    --paper: oklch(99.2% 0.004 240);
+    --card: oklch(100% 0.002 236);
+    --card-alt: oklch(95% 0.022 242);
+    --ink: oklch(22% 0.035 258);
+    --ink-soft: oklch(42% 0.03 254);
+    --ink-faint: oklch(63% 0.02 250);
+    --line: oklch(90% 0.012 240);
+    --accent: oklch(34% 0.11 262);
+    --accent-soft: oklch(94% 0.028 258);
+    --accent-ink: oklch(26% 0.095 264);
+    --influence: oklch(58% 0.13 228);
+    --influence-soft: oklch(94% 0.025 226);
+    --nocontrol: oklch(60% 0.014 246);
+    --nocontrol-soft: oklch(93% 0.008 244);
+    --warn: oklch(30% 0.13 250);
+    --warn-soft: oklch(90% 0.045 248);
+    --constraint: oklch(48% 0.09 246);
+    --constraint-soft: oklch(93% 0.03 246);
+    --size-bg: oklch(95% 0.015 240);
+    --size-ink: oklch(38% 0.05 254);
+    --dot-color: oklch(88% 0.012 240 / 0.4);
+    --shadow-sm: 0 1px 2px oklch(40% 0.035 258 / 0.05), 0 3px 8px oklch(40% 0.035 258 / 0.05);
+    --shadow-md: 0 6px 16px oklch(38% 0.04 258 / 0.06), 0 16px 36px oklch(38% 0.04 258 / 0.07);
+    --shadow-lg: 0 14px 34px oklch(32% 0.045 258 / 0.09), 0 32px 70px oklch(30% 0.045 258 / 0.11);
+  }
+  /* Dark-mode auto-switching intentionally removed: this prototype always renders on a white background regardless of OS theme, so it looks consistent whenever it's opened or shown to someone. */
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Heebo', 'Segoe UI', Arial, sans-serif;
+    min-height: 100vh;
+  }
+  .serif { font-family: 'Frank Ruhl Libre', 'David Libre', Georgia, serif; }
+  button { font-family: inherit; cursor: pointer; }
+  button:focus-visible, [tabindex]:focus-visible, .step-dot:focus-visible {
+    outline: none; box-shadow: 0 0 0 1px var(--card), 0 0 0 3px var(--accent);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+  }
+
+  .meta-row {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 1360px; max-width: 100%; margin: 0 auto 14px; padding: 0 4px;
+    font-size: 12.5px; color: var(--ink-faint);
+  }
+  .meta-row .badge-demo {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--card-alt); padding: 6px 14px; border-radius: 999px;
+  }
+  .reset-btn {
+    display: inline-flex; align-items: center; gap: 6px; background: none; border: none;
+    color: var(--ink-faint); font-size: 12.5px; padding: 6px 4px;
+  }
+  .reset-btn:hover { color: var(--ink-soft); }
+
+  .viewport-scroll { overflow: auto; width: 100%; min-height: calc(100vh - 90px); display: flex; align-items: flex-start; justify-content: center; padding: 28px 16px 60px; }
+  .frame-scaler { flex-shrink: 0; }
+  .app-frame {
+    position: relative; width: 1360px; max-width: none;
+    min-height: 820px; background: var(--paper); border-radius: 20px; border: 1px solid var(--line);
+    box-shadow: var(--shadow-lg); overflow: hidden; display: flex; flex-direction: column;
+  }
+
+  .paper-bg { background-color: var(--paper); background-image: radial-gradient(var(--dot-color) 1px, transparent 1px); background-size: 30px 30px; }
+
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 72px; border-bottom: 1px solid var(--line); flex-shrink: 0; }
+  .wordmark { display: flex; align-items: center; gap: 10px; font-family: 'Frank Ruhl Libre', serif; font-size: 17px; color: var(--ink-soft); }
+  .stepper { display: flex; align-items: center; gap: 8px; }
+  .step-dot { width: 8px; height: 8px; border-radius: 50%; background: transparent; border: 1.5px solid var(--ink-faint); padding: 0; cursor: pointer; }
+  .step-dot.done { background: var(--accent-soft); border-color: var(--accent-soft); }
+  .step-dot.active { width: 10px; height: 10px; background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+  .step-line { width: 22px; height: 1px; background: var(--line); }
+
+  .btn-primary { background: linear-gradient(180deg, oklch(38% 0.105 262), oklch(30% 0.1 264)); color: var(--paper); border: none; border-top: 1px solid oklch(55% 0.09 260 / 0.35); border-radius: 10px; padding: 14px 30px; font-size: 15px; font-weight: 500; letter-spacing: 0.01em; box-shadow: var(--shadow-sm); transition: transform .15s ease; }
+  .btn-primary:hover { transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: var(--ink-soft); border: none; font-size: 14px; padding: 8px; }
+  .btn-ghost:hover { color: var(--ink); }
+  .btn-ghost:disabled { opacity: .4; pointer-events: none; }
+
+  .screen { display: none; flex-direction: column; flex: 1; min-height: 0; }
+  .screen.active { display: flex; }
+
+  /* ---- main ---- */
+  #screen-main .hero { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center; }
+
+  /* ---- triage ---- */
+  .pill { display: inline-flex; align-items: center; gap: 9px; padding: 13px 24px; border-radius: 999px; border: 1px solid var(--line); font-size: 14.5px; font-weight: 500; background: transparent; color: var(--ink-soft); transition: transform .15s ease, box-shadow .15s ease, background-color .15s ease, border-color .15s ease, color .15s ease; }
+  .pill:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); color: var(--ink); }
+  .pill-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .triage-card { width: 520px; background: var(--card); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow-sm); padding: 46px 46px 38px; transition: transform .2s ease, opacity .2s ease; }
+  .triage-card.flying { transform: translateY(-14px) scale(.97); opacity: 0; }
+  .zone-stack { position: relative; width: 52px; height: 34px; }
+  .zone-chip { position: absolute; width: 40px; height: 26px; border-radius: 6px; border: 1.3px solid; }
+  .pile-count { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+
+  /* ---- summary ---- */
+  .sum-card { width: 270px; background: var(--card-alt); border: 1px solid var(--line); border-radius: 18px; padding: 34px 30px; text-align: center; }
+
+  /* ---- funnel ---- */
+  .sticky { position: absolute; width: 164px; min-height: 92px; background: var(--card); border: 1px solid var(--line); border-radius: 4px; box-shadow: var(--shadow-sm); padding: 20px 16px 14px; font-size: 13.5px; line-height: 1.5; color: var(--ink); touch-action: none; cursor: grab; user-select: none; }
+  .sticky:active { cursor: grabbing; }
+  .sticky::before { content: ""; position: absolute; top: 0; right: 30%; width: 40%; height: 1px; background: var(--line); pointer-events: none; }
+  .sticky.big { box-shadow: 0 0 0 5px var(--accent-soft), var(--shadow-md); }
+  .sticky-label { display: block; }
+  .badge-rock { position: absolute; top: -11px; left: -9px; background: var(--accent); color: var(--paper); font-size: 10.5px; font-weight: 600; letter-spacing: 0.015em; padding: 4px 9px; border-radius: 999px; white-space: nowrap; pointer-events: none; }
+  .size-badge { position: absolute; top: -9px; right: -9px; width: 20px; height: 20px; border-radius: 50%; background: var(--size-bg); color: var(--size-ink); font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); pointer-events: none; }
+  .corner-label { position: absolute; font-size: 11px; letter-spacing: .04em; color: var(--ink-faint); }
+
+  /* ---- canvas: phase accordion ---- */
+  .phase-spine { display: flex; width: 1240px; max-width: 90%; gap: 6px; margin: 18px auto 0; }
+  .phase-block { flex: 1; position: relative; border: none; border-radius: 14px; padding: 16px 14px 14px; color: #fff; text-align: right; cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; box-shadow: var(--shadow-sm); }
+  .phase-block:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .phase-block.active { box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px var(--accent), var(--shadow-md); }
+  .phase-block-label { font-size: 13px; font-weight: 600; }
+  .phase-block-meta { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 11px; opacity: .9; }
+  .phase-block-today { position: absolute; top: -9px; right: 10px; background: var(--ink); color: var(--paper); font-size: 10px; padding: 3px 9px; border-radius: 999px; box-shadow: var(--shadow-sm); }
+  .phase-block-warn { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; background: rgba(255,255,255,.28); font-weight: 700; }
+  .phase-detail { width: 1240px; max-width: 90%; margin: 14px auto 0; background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow-sm); padding: 22px 26px; }
+  .phase-detail-empty { color: var(--ink-faint); font-size: 13px; text-align: center; padding: 14px 0; }
+  .fab-btn { width: 60px; height: 60px; border-radius: 50%; background: var(--accent); box-shadow: var(--shadow-lg), 0 0 0 10px oklch(45% 0.09 262 / 0.09); display: flex; align-items: center; justify-content: center; border: none; transition: transform .15s ease; }
+  .fab-btn:hover { transform: scale(1.05); }
+  .fab-chip { background: var(--card); border: 1px solid var(--line); box-shadow: var(--shadow-sm); padding: 10px 16px; border-radius: 999px; font-size: 13px; letter-spacing: 0.01em; color: var(--ink-soft); display: inline-flex; align-items: center; gap: 8px; }
+  .warn-badge { position: absolute; bottom: -8px; left: -8px; width: 19px; height: 19px; border-radius: 50%; background: var(--warn); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); pointer-events: none; }
+  .layer-chip { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--card); font-size: 12.5px; color: var(--ink-soft); transition: all .15s ease; }
+  .layer-chip:hover { color: var(--ink); }
+  .layer-chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); flex-shrink: 0; }
+  .layer-chip.on { border-color: var(--accent); color: var(--ink); background: var(--accent-soft); }
+  .layer-chip.on .dot { background: var(--accent); }
+  .layer-chip.on[data-layer="constraints"] { border-color: var(--constraint); background: var(--constraint-soft); }
+  .layer-chip.on[data-layer="constraints"] .dot { background: var(--constraint); }
+  .tab-toggle { display: inline-flex; background: var(--card-alt); border-radius: 999px; padding: 4px; gap: 2px; }
+  .tab-btn { border: none; background: transparent; padding: 8px 18px; border-radius: 999px; font-size: 13px; letter-spacing: 0.015em; color: var(--ink-soft); font-weight: 500; }
+  .tab-btn.active { background: var(--card); color: var(--ink); box-shadow: var(--shadow-sm); }
+  .load-strip { display: flex; align-items: flex-end; gap: 6px; width: 1240px; max-width: 90%; height: 34px; margin: 10px auto 0; }
+  .load-bar { flex: 1; border-radius: 3px 3px 0 0; }
+  .week-list { display: flex; flex-direction: column; gap: 14px; width: 560px; max-width: 92%; }
+  .week-item { display: flex; align-items: center; gap: 14px; background: var(--card); border-radius: 16px; padding: 16px 18px; box-shadow: var(--shadow-sm); }
+  .week-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ---- overlays ---- */
+  .scrim { position: absolute; inset: 0; background: oklch(20% 0.02 60 / 0.38); opacity: 0; pointer-events: none; transition: opacity .2s ease; z-index: 20; }
+  .scrim.open { opacity: 1; pointer-events: auto; }
+
+  .drawer { position: absolute; top: 0; bottom: 0; right: auto; left: 0; width: 560px; max-width: 88%; background: var(--paper); border-right: 1px solid var(--line); padding: 44px 44px 36px; display: flex; flex-direction: column; transform: translateX(-105%); transition: transform .28s ease; z-index: 30; }
+  .drawer.open { transform: translateX(0); }
+  .grow-step { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; }
+  .grow-circle { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .grow-line { flex: 1; height: 1px; background: var(--accent-soft); margin-top: 16px; }
+  .smart-tag { display: inline-flex; padding: 6px 13px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-ink); font-size: 12px; font-weight: 500; }
+  .field-input { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 10px; font-family: inherit; font-size: 14px; background: var(--paper); color: var(--ink); resize: none; }
+  .wizard-steps { display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 22px; }
+  .wizard-dot { width: 28px; height: 28px; border-radius: 50%; background: var(--card); border: 1.5px solid var(--line); display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 700; color: var(--ink-faint); flex-shrink: 0; }
+  .wizard-dot.active { background: var(--accent); border-color: var(--accent); color: var(--paper); }
+  .wizard-dot.done { background: var(--accent-soft); border-color: var(--accent-soft); color: var(--accent-ink); }
+  .wizard-dot-line { width: 18px; height: 1px; background: var(--line); }
+  .wizard-label { font-size: 12px; color: var(--ink-soft); letter-spacing: .03em; margin-bottom: 4px; }
+  .wizard-question { font-size: 16.5px; font-family: 'Frank Ruhl Libre', serif; margin-bottom: 16px; }
+  .m-toggle { display: flex; gap: 8px; }
+  .m-toggle-btn { flex: 1; padding: 10px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--card); color: var(--ink-soft); font-size: 13px; }
+  .m-toggle-btn.active { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; }
+  .resource-list { display: flex; flex-direction: column; gap: 10px; }
+  .resource-row { display: flex; align-items: center; gap: 10px; font-size: 13.5px; cursor: pointer; }
+  .resource-row input { width: 16px; height: 16px; accent-color: var(--accent); }
+
+  /* ---- goals lab: GROW (thinking) → SMART (phrasing) two-phase indicator ---- */
+  .lab-phases { display: flex; align-items: stretch; gap: 8px; margin-bottom: 20px; }
+  .lab-phase { display: flex; align-items: center; gap: 10px; padding: 10px 13px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); flex: 1; opacity: .5; transition: opacity .2s ease, border-color .2s ease, background .2s ease; }
+  .lab-phase.active { opacity: 1; border-color: var(--accent); background: var(--accent-soft); }
+  .lab-phase.done { opacity: 1; }
+  .lab-phase-num { width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--paper); font-size: 11.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .lab-phase-name { font-size: 12.5px; font-weight: 600; }
+  .lab-phase-sub { font-size: 11px; color: var(--ink-soft); }
+  .lab-phase-arrow { display: flex; align-items: center; color: var(--ink-faint); flex-shrink: 0; }
+
+  .explainer-toggle { background: none; border: none; color: var(--accent-ink); font-size: 12.5px; padding: 0 0 10px; text-decoration: underline; text-underline-offset: 2px; }
+  .explainer { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; font-size: 12.5px; line-height: 1.8; color: var(--ink-soft); margin-bottom: 14px; }
+  .explainer b { color: var(--ink); font-weight: 600; }
+  .explainer ol { margin: 8px 0 0; padding-inline-start: 18px; }
+  .explainer li { margin-bottom: 4px; }
+
+  .grow-track { display: flex; align-items: flex-start; margin-bottom: 18px; }
+  .grow-circle.pending { background: var(--card); border: 1.5px solid var(--line); }
+  .grow-circle.active { background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+  .grow-circle.done { background: var(--accent); }
+  .grow-letter { font-size: 12px; font-weight: 700; color: var(--ink-faint); }
+  .grow-circle.active .grow-letter, .grow-circle.done .grow-letter { color: var(--paper); }
+  .grow-caption { font-size: 11px; color: var(--ink-soft); text-align: center; }
+  .grow-why { font-size: 12px; color: var(--ink-soft); line-height: 1.7; margin-bottom: 14px; }
+  .lab-card { background: var(--card-alt); border: 1.5px solid var(--accent); border-radius: 14px; padding: 24px; margin-bottom: 20px; }
+  .recap { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; }
+  .recap-title { font-size: 11.5px; color: var(--ink-faint); margin-bottom: 8px; letter-spacing: .03em; }
+  .recap-row { font-size: 12.5px; line-height: 1.75; color: var(--ink-soft); }
+  .recap-row b { color: var(--ink); font-weight: 600; }
+  .sched-block { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 14px; }
+  .sched-title { font-size: 12.5px; font-weight: 600; margin-bottom: 2px; }
+  .sched-note { font-size: 11.5px; color: var(--ink-faint); margin-bottom: 10px; }
+  .sched-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--line); }
+  .sched-row:last-child { border-bottom: none; }
+  .sched-text { flex: 1; font-size: 12.5px; line-height: 1.5; }
+  .sched-text.muted { color: var(--ink-faint); }
+  .sched-select { flex-shrink: 0; width: 112px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; font-family: inherit; font-size: 12px; background: var(--paper); color: var(--ink); }
+  .sched-badge { flex-shrink: 0; font-size: 10.5px; color: var(--accent-ink); background: var(--accent-soft); padding: 2px 7px; border-radius: 999px; }
+
+  .add-own { display: flex; gap: 8px; margin-top: 12px; }
+  .add-own .field-input { flex: 1; }
+  .add-own-btn { background: var(--accent-soft); color: var(--accent-ink); border: none; border-radius: 10px; padding: 0 16px; font-size: 12.5px; font-weight: 600; flex-shrink: 0; white-space: nowrap; }
+  .own-tag { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--accent-ink); background: var(--accent-soft); padding: 2px 8px; border-radius: 999px; margin-inline-start: 6px; }
+  .ms-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--line); gap: 10px; }
+  .ms-left { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+  .chk { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--ink-faint); flex-shrink: 0; display: inline-block; }
+  .month-chip { font-size: 11.5px; color: var(--ink-soft); background: var(--card-alt); padding: 5px 11px; border-radius: 999px; flex-shrink: 0; }
+  .size-chip { font-size: 11px; font-weight: 700; color: var(--size-ink); background: var(--size-bg); padding: 5px 9px; border-radius: 999px; flex-shrink: 0; }
+  .ms-chips { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+
+  .modal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -46%) scale(.97); width: 620px; max-width: 86%; background: var(--card); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow-lg); padding: 44px 48px; opacity: 0; pointer-events: none; transition: transform .22s ease, opacity .22s ease; z-index: 31; }
+  .modal.open { transform: translate(-50%, -50%) scale(1); opacity: 1; pointer-events: auto; }
+  .refl-row { display: flex; gap: 16px; align-items: flex-start; padding: 16px 0; border-bottom: 1px solid var(--line); }
+  .refl-row:last-of-type { border-bottom: none; }
+  .refl-icon { width: 36px; height: 36px; border-radius: 50%; background: var(--accent-soft); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+  .fab-popover { position: absolute; bottom: 108px; left: 32px; width: 280px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow-md); padding: 20px; opacity: 0; transform: translateY(8px); pointer-events: none; transition: opacity .18s ease, transform .18s ease; z-index: 25; }
+  .fab-popover.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .fab-popover textarea { width: 100%; min-height: 70px; border: 1px solid var(--line); border-radius: 8px; padding: 10px; font-family: inherit; font-size: 13.5px; resize: none; background: var(--paper); color: var(--ink); }
+
+  .templates-popover { position: absolute; top: 78px; left: 56px; width: 300px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow-md); padding: 18px 20px; opacity: 0; transform: translateY(-8px); pointer-events: none; transition: opacity .18s ease, transform .18s ease; z-index: 25; }
+  .templates-popover.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .template-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--line); gap: 10px; }
+  .template-row:last-child { border-bottom: none; }
+  .template-name { display: flex; align-items: center; gap: 8px; font-size: 13.5px; }
+  .template-add { background: var(--accent-soft); color: var(--accent-ink); border: none; border-radius: 999px; padding: 6px 14px; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+
+  .toast { position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(10px); background: var(--paper); border: 1px solid var(--line); color: var(--ink); padding: 12px 22px; border-radius: 999px; font-size: 13.5px; box-shadow: var(--shadow-md); opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease; z-index: 40; max-width: 80%; text-align: center; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media print {
+    body * { visibility: hidden; }
+    #snapshotModal, #snapshotModal * { visibility: visible; }
+    #snapshotModal { position: fixed; inset: 0; transform: none; opacity: 1; box-shadow: none; border-radius: 0; width: 100%; height: auto; max-width: none; }
+    .frame-scaler { transform: none !important; width: auto !important; height: auto !important; }
+    .app-frame { transform: none !important; }
+  }
+</style>
+
+<div class="meta-row">
+  <span class="badge-demo">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M7 4V7L9 8.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+    אפשר להזין ולנווט באמת — רק שהנתונים לא נשמרים בין רענונים
+  </span>
+  <button class="reset-btn" id="resetDemo">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M20 12A8 8 0 1 1 17.5 6.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M20 4V9H15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    לאתחל את ההדגמה
+  </button>
+</div>
+
+<div class="viewport-scroll">
+<div class="frame-scaler" id="frameScaler">
+<div class="app-frame" dir="rtl" lang="he">
+
+  <!-- ============ MAIN / PAUSE ============ -->
+  <section class="screen active paper-bg" id="screen-main">
+    <div class="hero">
+      <svg width="72" height="72" viewBox="0 0 72 72" fill="none" style="margin-bottom:32px;">
+        <circle cx="36" cy="36" r="34" stroke="var(--accent-soft)" stroke-width="1.5"/>
+        <circle cx="36" cy="36" r="24" stroke="var(--accent-soft)" stroke-width="1.5"/>
+        <circle cx="36" cy="36" r="13" stroke="var(--accent)" stroke-width="1.6"/>
+      </svg>
+      <div style="font-size:14px; letter-spacing:.06em; color:var(--ink-faint); margin-bottom:20px;">לפני שנפתח את היומן</div>
+      <h1 class="serif" style="max-width:640px; font-size:32px; font-weight:500; line-height:1.55; margin:0 0 40px;">
+        מה האתגר המרכזי<br>או הבטן הרכה שמעסיקה אותך<br>כרגע בכיתה?
+      </h1>
+      <div style="width:580px; max-width:100%;">
+        <textarea id="challengeInput" class="serif" style="width:100%; border:none; border-bottom:1px solid var(--line); background:transparent; color:var(--ink); font-style:italic; font-size:16.5px; padding:0 0 12px; resize:none; min-height:30px; font-family:inherit;" placeholder="קשה לי למצוא רגע פרטני עם כל ילד וילדה בכיתה הגדולה..." rows="1"></textarea>
+      </div>
+      <button class="btn-primary" id="startTriageBtn" style="margin-top:46px;">בואי נתחיל לפרוק</button>
+      <div style="margin-top:14px; font-size:13px; color:var(--ink-faint);">לוקח בערך שלוש דקות</div>
+    </div>
+  </section>
+
+  <!-- ============ TRIAGE ============ -->
+  <section class="screen" id="screen-triage">
+    <div class="topbar">
+      <div class="wordmark"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8.5" stroke="var(--ink-soft)" stroke-width="1.3"/><circle cx="10" cy="10" r="3" fill="var(--ink-soft)"/></svg>מצפן פדגוגי</div>
+      <div class="stepper">
+        <button class="step-dot" data-stage="1" aria-label="השהיה"></button><div class="step-line"></div>
+        <button class="step-dot" data-stage="2" aria-label="טריאז'"></button><div class="step-line"></div>
+        <button class="step-dot" data-stage="3" aria-label="המשפך"></button><div class="step-line"></div>
+        <button class="step-dot" data-stage="4" aria-label="מעבדת המטרות"></button><div class="step-line"></div>
+        <button class="step-dot" data-stage="5" aria-label="הקנבס"></button>
+      </div>
+    </div>
+    <div class="paper-bg" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative;">
+      <div style="display:flex; gap:10px; margin-bottom:26px; width:520px; max-width:92%;">
+        <input id="triageAddInput" class="field-input" placeholder="מה עוד מעסיק אותך? הקלידי וצרפי לערימה" style="flex:1;">
+        <button class="btn-primary" id="triageAddBtn" style="padding:11px 20px; font-size:13.5px; white-space:nowrap;">להוסיף</button>
+      </div>
+      <div id="triageCounter" style="font-size:13px; color:var(--ink-faint); margin-bottom:18px;">פריט 1</div>
+      <div class="triage-card" id="triageCard">
+        <div style="font-size:13.5px; color:var(--ink-faint); margin-bottom:16px;">עוד משהו שמעסיק אותך?</div>
+        <div class="serif" id="triageCardText" style="font-size:21px; line-height:1.6; min-height:64px;"></div>
+        <div style="display:flex; gap:12px; margin-top:30px; justify-content:center; flex-wrap:wrap;">
+          <button class="pill cat-btn" data-cat="control" style="border-color:var(--accent);"><span class="pill-dot" style="background:var(--accent);"></span>בשליטתי</button>
+          <button class="pill cat-btn" data-cat="influence" style="border-color:var(--influence);"><span class="pill-dot" style="background:var(--influence);"></span>בהשפעתי</button>
+          <button class="pill cat-btn" data-cat="nocontrol" style="border-color:var(--nocontrol);"><span class="pill-dot" style="background:var(--nocontrol);"></span>מחוץ לשליטתי</button>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:18px; margin-top:36px;">
+        <button class="btn-ghost" id="undoTriageBtn" disabled>↶ בטלי סיווג אחרון</button>
+        <button class="btn-ghost" id="finishTriageBtn" style="text-decoration:underline; text-underline-offset:3px;">סיימתי לפרוק — למיין את מה שיש</button>
+      </div>
+      <div style="position:absolute; bottom:40px; display:flex; gap:56px;">
+        <div style="text-align:center;">
+          <div style="font-size:12px; color:var(--ink-faint); margin-bottom:8px;">בשליטתי</div>
+          <div class="zone-stack"><div class="zone-chip" style="background:var(--accent-soft); border-color:var(--accent); right:8px; top:6px;"></div><div class="zone-chip" style="background:var(--accent-soft); border-color:var(--accent); right:4px; top:3px;"></div><div class="zone-chip" style="background:var(--card); border-color:var(--accent); right:0; top:0;"></div></div>
+          <div class="pile-count" id="pileControl" style="font-size:13px; color:var(--ink-soft); margin-top:6px; font-weight:600;">0</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:12px; color:var(--ink-faint); margin-bottom:8px;">בהשפעתי</div>
+          <div class="zone-stack"><div class="zone-chip" style="background:var(--influence-soft); border-color:var(--influence); right:8px; top:6px;"></div><div class="zone-chip" style="background:var(--influence-soft); border-color:var(--influence); right:4px; top:3px;"></div><div class="zone-chip" style="background:var(--card); border-color:var(--influence); right:0; top:0;"></div></div>
+          <div class="pile-count" id="pileInfluence" style="font-size:13px; color:var(--ink-soft); margin-top:6px; font-weight:600;">0</div>
+        </div>
+        <div style="text-align:center; opacity:.7;">
+          <div style="font-size:12px; color:var(--ink-faint); margin-bottom:8px;">מחוץ לשליטתי</div>
+          <div class="zone-stack"><div class="zone-chip" style="background:var(--nocontrol-soft); border-color:var(--nocontrol); right:8px; top:6px;"></div><div class="zone-chip" style="background:var(--nocontrol-soft); border-color:var(--nocontrol); right:4px; top:3px;"></div><div class="zone-chip" style="background:var(--card); border-color:var(--nocontrol); right:0; top:0;"></div></div>
+          <div class="pile-count" id="pileNoControl" style="font-size:13px; color:var(--ink-soft); margin-top:6px; font-weight:600;">0</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SUMMARY ============ -->
+  <section class="screen" id="screen-summary">
+    <div class="topbar">
+      <div class="wordmark"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8.5" stroke="var(--ink-soft)" stroke-width="1.3"/><circle cx="10" cy="10" r="3" fill="var(--ink-soft)"/></svg>מצפן פדגוגי</div>
+      <div class="stepper">
+        <button class="step-dot" data-stage="1" aria-label="השהיה"></button><div class="step-line"></div>
+        <button class="step-dot" data-stage="2" aria-label="טריאז'"></button><div class="step-line"></div>
+        <button class="step-dot" data-stage="3" aria-label="המשפך"></button><div class="step-line"></div>
+        <button class="step-dot" data-stage="4" aria-label="מעבדת המטרות"></button><div class="step-line"></div>
+        <button class="step-dot" data-stage="5" aria-label="הקנבס"></button>
+      </div>
+    </div>
+    <div class="paper-bg" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+      <h1 class="serif" id="sumHeadline" style="font-size:28px; font-weight:500; margin:0 0 8px;">פרקת כמה מחשבות</h1>
+      <div style="font-size:14.5px; color:var(--ink-soft); margin-bottom:44px;">הנה איך הן מתחלקות</div>
+      <div style="display:flex; gap:24px; align-items:stretch; flex-wrap:wrap; justify-content:center;">
+        <div class="sum-card" style="border:2px solid var(--accent); box-shadow:0 0 0 6px var(--accent-soft);">
+          <div class="serif pile-count" id="sumControlCount" style="font-size:44px; color:var(--accent); margin-bottom:6px;">0</div>
+          <div style="font-size:15px; font-weight:600; margin-bottom:10px;">בשליטתי</div>
+          <div style="font-size:13px; color:var(--ink-soft); line-height:1.6;">אלה ממשיכות איתך למשפך</div>
+        </div>
+        <div class="sum-card" style="border:1.5px solid var(--influence);">
+          <div class="serif pile-count" id="sumInfluenceCount" style="font-size:44px; color:var(--influence); margin-bottom:6px;">0</div>
+          <div style="font-size:15px; font-weight:600; margin-bottom:10px;">בהשפעתי</div>
+          <div style="font-size:13px; color:var(--ink-soft); line-height:1.6;">אפשר להשפיע בעדינות, לא לבד</div>
+        </div>
+        <div class="sum-card" style="opacity:.6;">
+          <div class="serif pile-count" id="sumNoControlCount" style="font-size:44px; color:var(--ink-faint); margin-bottom:6px;">0</div>
+          <div style="font-size:15px; font-weight:600; margin-bottom:10px; color:var(--ink-soft);">מחוץ לשליטתי</div>
+          <div style="font-size:13px; color:var(--ink-faint); line-height:1.6;">שוחררו — לא כאן היום</div>
+        </div>
+      </div>
+      <button class="btn-primary" data-goto="funnel" style="margin-top:48px;">להמשיך למשפך</button>
+    </div>
+  </section>
+
+  <!-- ============ FUNNEL ============ -->
+  <section class="screen" id="screen-funnel">
+    <div class="topbar">
+      <div class="wordmark"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8.5" stroke="var(--ink-soft)" stroke-width="1.3"/><circle cx="10" cy="10" r="3" fill="var(--ink-soft)"/></svg>מצפן פדגוגי</div>
+      <div class="stepper">
+        <button class="step-dot" data-stage="1" aria-label="השהיה"></button><div class="step-line"></div>
+        <button class="step-dot" data-stage="2" aria-label="טריאז'"></button><div class="step-line"></div>
+        <button class="step-dot" data-stage="3" aria-label="המשפך"></button><div class="step-line"></div>
+        <button class="step-dot" data-stage="4" aria-label="מעבדת המטרות"></button><div class="step-line"></div>
+        <button class="step-dot" data-stage="5" aria-label="הקנבס"></button>
+      </div>
+    </div>
+    <div class="paper-bg" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:22px; padding:20px 0;">
+      <div style="text-align:center;">
+        <h1 class="serif" style="font-size:26px; font-weight:500; margin:0 0 6px;">המשפך</h1>
+        <div style="font-size:14px; color:var(--ink-soft);">הפעולות שסימנת "בשליטתי" ו"בהשפעתי" בטריאז' נמצאות כאן — גררי אותן על המטריצה; מי שמגיעה לפינה הימנית-העליונה הופכת ל"אבן גדולה"; לחיצה עליה פותחת את מעבדת המטרות</div>
+      </div>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <input id="funnelAddInput" class="field-input" placeholder="הוסיפי פעולה נוספת ישירות למשפך" style="width:320px;">
+        <button class="btn-primary" id="funnelAddBtn" style="padding:10px 20px; font-size:13px;">להוסיף</button>
+      </div>
+      <div id="funnelMatrix" style="position:relative; width:1080px; height:500px; background:var(--card-alt); border-radius:22px; max-width:94%;">
+        <div style="position:absolute; top:0; right:0; width:540px; height:250px; background:var(--accent-soft); opacity:.5; border-radius:22px 0 0 0;"></div>
+        <div style="position:absolute; top:0; right:540px; bottom:0; width:1px; background:var(--line);"></div>
+        <div style="position:absolute; left:0; right:0; top:250px; height:1px; background:var(--line);"></div>
+        <div class="corner-label" style="top:16px; right:20px;">משמעותי · דחוף עכשיו</div>
+        <div class="corner-label" style="top:16px; left:20px;">משמעותי · יכול לחכות</div>
+        <div class="corner-label" style="bottom:16px; right:20px;">פחות משמעותי · דחוף</div>
+        <div class="corner-label" style="bottom:16px; left:20px;">פחות משמעותי · יכול לחכות</div>
+        <div id="funnelEmptyHint" style="position:absolute; inset:0; display:none; align-items:center; justify-content:center; text-align:center; padding:40px; font-size:14px; color:var(--ink-faint); line-height:1.7;">עוד אין כאן פעולות — סיימי לפרוק בטריאז', או הוסיפי אחת ישירות למעלה</div>
+      </div>
+      <div style="font-size:13px; color:var(--ink-faint);">מודגשות בהילה: כ-20% מהפעולות בעלות ההשפעה הגבוהה ביותר — אלה הופכות לאבנים הגדולות</div>
+    </div>
+  </section>
+
+  <!-- ============ MAIN CANVAS ============ -->
+  <section class="screen" id="screen-canvas">
+    <div class="topbar">
+      <div class="wordmark"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8.5" stroke="var(--ink-soft)" stroke-width="1.3"/><circle cx="10" cy="10" r="3" fill="var(--ink-soft)"/></svg>מצפן פדגוגי</div>
+      <div class="stepper">
+        <button class="step-dot" data-stage="1" aria-label="השהיה"></button><div class="step-line"></div>
+        <button class="step-dot" data-stage="2" aria-label="טריאז'"></button><div class="step-line"></div>
+        <button class="step-dot" data-stage="3" aria-label="המשפך"></button><div class="step-line"></div>
+        <button class="step-dot" data-stage="4" aria-label="מעבדת המטרות"></button><div class="step-line"></div>
+        <button class="step-dot" data-stage="5" aria-label="הקנבס"></button>
+      </div>
+    </div>
+    <div class="paper-bg" style="flex:1; display:flex; flex-direction:column; position:relative;">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; padding:26px 56px 0; flex-wrap:wrap; gap:16px;">
+        <div>
+          <h1 class="serif" style="font-size:24px; font-weight:500; margin:0 0 6px;">הקנבס השנתי</h1>
+          <div style="font-size:13.5px; color:var(--ink-soft);">מיוני אחורה אל אוקטובר — תכנון לאחור</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <button class="fab-chip" id="templatesBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="13" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="4" y="13" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="13" y="13" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/></svg>
+            ספריית תבניות
+          </button>
+          <button class="fab-chip" id="constraintBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="4" y="10" width="16" height="10" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M7 10V7A5 5 0 0 1 17 7V10" stroke="currentColor" stroke-width="1.6"/></svg>
+            אילוץ אישי
+          </button>
+          <button class="fab-chip" id="snapshotBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="5" y="3" width="14" height="18" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M8 8H16M8 12H16M8 16H12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            תמצית להדפסה
+          </button>
+          <button class="fab-chip" id="reflBadge" style="background:var(--accent-soft); color:var(--accent-ink);">
+            <span style="width:7px; height:7px; border-radius:50%; background:var(--accent); display:inline-block;"></span><span id="reflBadgeLabel">רפלקציה חודשית</span>
+          </button>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:center; padding-top:16px;">
+        <div class="tab-toggle">
+          <button class="tab-btn active" id="yearTabBtn">תצוגה שנתית</button>
+          <button class="tab-btn" id="weekTabBtn">השבוע הזה</button>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap; padding-top:14px;">
+        <button class="layer-chip on" id="layerNational" data-layer="national"><span class="dot"></span>לוח שנה ארצי תשפ"ז</button>
+        <button class="layer-chip on" id="layerConstraints" data-layer="constraints"><span class="dot"></span>אילוצים אישיים</button>
+      </div>
+      <div style="text-align:center; font-size:11px; color:var(--ink-faint); margin-top:6px;">
+        מבוסס על לוח החופשות והחגים הרשמי של תשפ"ז · אילוץ מחזורי פעיל: קבוצת בוגרים עירונית · ימי ג׳ 16:00–19:00 · אוקטובר–יוני
+      </div>
+
+      <div id="yearView" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative;">
+        <div id="phaseSpine" class="phase-spine"></div>
+        <div id="phaseDetail" class="phase-detail" style="display:none;"></div>
+
+        <div class="load-strip" id="loadStrip">
+          <div class="load-bar" style="height:8px; background:var(--accent-soft);" title="אוקטובר"></div>
+          <div class="load-bar" style="height:17px; background:var(--accent-soft);" title="נובמבר"></div>
+          <div class="load-bar" style="height:26px; background:var(--warn);" title="דצמבר — עומס + חופשה"></div>
+          <div class="load-bar" style="height:21px; background:var(--accent-soft);" title="ינואר"></div>
+          <div class="load-bar" style="height:10px; background:var(--accent-soft);" title="פברואר"></div>
+          <div class="load-bar" style="height:23px; background:var(--accent-soft);" title="מרץ"></div>
+          <div class="load-bar" style="height:12px; background:var(--accent-soft);" title="אפריל"></div>
+          <div class="load-bar" style="height:19px; background:var(--accent-soft);" title="מאי"></div>
+          <div class="load-bar" style="height:6px; background:var(--accent-soft);" title="יוני"></div>
+        </div>
+        <div style="font-size:11.5px; color:var(--ink-faint); margin-top:8px;">עומס משוער לפי חודש — כולל ההתנגשות עם חופשת חנוכה בדצמבר</div>
+      </div>
+
+      <div id="weekView" style="flex:1; display:none; flex-direction:column; align-items:center; justify-content:center; gap:18px;">
+        <div style="text-align:center; margin-bottom:4px;">
+          <div class="serif" style="font-size:19px;">השבוע הזה, בלי לגלול על כל השנה</div>
+        </div>
+        <div class="week-list">
+          <div class="week-item">
+            <span class="week-dot" style="background:var(--accent);"></span>
+            <div><div style="font-size:14px; font-weight:600;">הושלם בנובמבר</div><div style="font-size:12.5px; color:var(--ink-soft);">לבחור 5 ספרי פתיחה לפי רמות</div></div>
+          </div>
+          <div class="week-item">
+            <span class="week-dot" style="background:var(--warn);"></span>
+            <div><div style="font-size:14px; font-weight:600;">שימי לב — לפני החופשה</div><div style="font-size:12.5px; color:var(--ink-soft);">לשלוח עדכון קצר להורים, מתנגש עם חופשת חנוכה</div></div>
+          </div>
+          <div class="week-item">
+            <span class="week-dot" style="background:var(--ink-faint);"></span>
+            <div><div style="font-size:14px; font-weight:600;">הבא בתור — ינואר</div><div style="font-size:12.5px; color:var(--ink-soft);">להריץ מדידת אמצע דרך</div></div>
+          </div>
+        </div>
+        <button class="btn-ghost" data-weektab="year" style="text-decoration:underline; text-underline-offset:3px;">חזרה לתצוגה השנתית</button>
+      </div>
+
+      <!-- FAB -->
+      <div style="position:absolute; bottom:32px; left:32px; display:flex; align-items:center; gap:12px;">
+        <button class="fab-chip" id="fabHint">לתעד בלת"ם</button>
+        <button class="fab-btn" id="fabBtn" aria-label="לתעד בלת&quot;ם">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14H11L10 22L20 9H13L13 2Z" stroke="var(--paper)" stroke-width="1.5" stroke-linejoin="round" fill="none"/></svg>
+        </button>
+      </div>
+      <div class="fab-popover" id="fabPopover">
+        <div style="font-size:13px; font-weight:600; margin-bottom:10px;">רגע של כיבוי שריפה</div>
+        <textarea id="fabText" placeholder="מה קרה עכשיו?"></textarea>
+        <button class="btn-primary" id="fabSaveBtn" style="width:100%; margin-top:10px; padding:11px; font-size:13.5px;">לשמור</button>
+      </div>
+
+      <div class="templates-popover" id="constraintPopover" style="left:265px; width:320px;">
+        <div style="font-size:13px; font-weight:600; margin-bottom:6px;">לחסום זמן בציר</div>
+        <div style="font-size:11.5px; color:var(--ink-faint); margin-bottom:12px; line-height:1.5;">היעדרות מאושרת, השתלמות, או התחייבות קבועה — כדי שהמערכת תתריע אם משהו כבר משובץ בדיוק אז</div>
+        <input id="constraintLabel" placeholder="למשל: השתלמות מוסדית" style="width:100%; margin-bottom:8px; padding:9px 10px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:13px; background:var(--paper); color:var(--ink);">
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+          <input type="date" id="constraintStart" style="flex:1; min-width:0; padding:9px 8px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12px; background:var(--paper); color:var(--ink);">
+          <input type="date" id="constraintEnd" style="flex:1; min-width:0; padding:9px 8px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:12px; background:var(--paper); color:var(--ink);">
+        </div>
+        <button class="btn-primary" id="constraintAddBtn" style="width:100%; padding:10px; font-size:13px;">להוסיף לציר</button>
+        <div style="font-size:10.5px; color:var(--ink-faint); margin-top:10px; padding-top:10px; border-top:1px solid var(--line); line-height:1.5;">דוגמה: השתלמות מוסדית · 9–11.2.2027 — נחסמת בדיוק על המשימה "להכין חומרי הערכה לרבעון"</div>
+        <button class="template-add" id="constraintSuggestBtn" style="margin-top:8px;">להוסיף את הדוגמה</button>
+      </div>
+
+      <div class="templates-popover" id="templatesPopover">
+        <div style="font-size:13px; font-weight:600; margin-bottom:8px;">תבניות שחוזרות כל שנה</div>
+        <div class="template-row">
+          <span class="template-name"><span class="size-chip" style="position:static;">M</span>ערב הורים</span>
+          <button class="template-add" data-template="ערב הורים">להוסיף</button>
+        </div>
+        <div class="template-row">
+          <span class="template-name"><span class="size-chip" style="position:static;">L</span>שבוע מסכם</span>
+          <button class="template-add" data-template="שבוע מסכם">להוסיף</button>
+        </div>
+        <div class="template-row">
+          <span class="template-name"><span class="size-chip" style="position:static;">S</span>חג / חנוכה</span>
+          <button class="template-add" data-template="חג / חנוכה">להוסיף</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ OVERLAY: GOALS LAB DRAWER ============ -->
+  <div class="scrim" id="labScrim"></div>
+  <div class="drawer" id="labDrawer">
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:26px;">
+      <div id="labChip" style="display:inline-flex; align-items:center; gap:8px; background:var(--accent-soft); color:var(--accent-ink); padding:8px 16px; border-radius:999px; font-size:13px; font-weight:500;"></div>
+      <button id="labCloseBtn" style="background:none; border:none; margin-top:6px;" aria-label="סגירה"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 2L14 14M14 2L2 14" stroke="var(--ink-faint)" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+    </div>
+    <h1 class="serif" style="font-size:25px; font-weight:500; margin:0 0 6px;">מעבדת המטרות</h1>
+    <div style="font-size:13px; color:var(--ink-soft); margin-bottom:20px;">קודם חושבים לעומק, אחר כך מנסחים יעד מדיד</div>
+
+    <div class="lab-phases">
+      <div class="lab-phase" id="labPhaseGrow">
+        <span class="lab-phase-num">1</span>
+        <div>
+          <div class="lab-phase-name">חשיבה · GROW</div>
+          <div class="lab-phase-sub">לברר מה באמת חשוב</div>
+        </div>
+      </div>
+      <div class="lab-phase-arrow"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 3L4 7L9 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="lab-phase" id="labPhaseSmart">
+        <span class="lab-phase-num">2</span>
+        <div>
+          <div class="lab-phase-name">ניסוח · SMART</div>
+          <div class="lab-phase-sub">להפוך את זה ליעד מדיד</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PHASE 1: GROW (real, guided) ===== -->
+    <div id="growPhase">
+      <button class="explainer-toggle" id="growExplainerBtn" aria-expanded="false" aria-controls="growExplainer">מה זה GROW ואיך זה עוזר לי? ▾</button>
+      <div class="explainer" id="growExplainer" style="display:none;">
+        <b>GROW</b> הוא תהליך חשיבה בארבע שאלות, שנועד למנוע את הקיצור-דרך הנפוץ: לקפוץ ישר לפתרון הראשון שעולה לראש. במקום זה עוברים בסדר:
+        <ol>
+          <li><b>G — מטרה:</b> לאן הייתי רוצה להגיע (עדיין בלי מספרים)</li>
+          <li><b>R — מציאות:</b> מה קורה בפועל היום, בכנות</li>
+          <li><b>O — אפשרויות:</b> אילו דרכים שונות קיימות — כמה, לא אחת</li>
+          <li><b>W — מחויבות:</b> במה בחרתי להתחיל, ומתי</li>
+        </ol>
+        בסוף ארבע השאלות יהיה בידך חומר גלם מסודר — וממנו נעבור <b>אוטומטית</b> לשלב 2 ונתרגם אותו ליעד SMART מדיד. התשובות שלך כאן הן שיזינו את הניסוח שם.
+      </div>
+      <div class="grow-track" id="growTrack"></div>
+      <div class="lab-card">
+        <div id="growBody"></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
+          <button class="btn-ghost" id="growBackBtn">חזרה</button>
+          <button class="btn-primary" id="growNextBtn" style="padding:11px 24px; font-size:13.5px;">הבא</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PHASE 2: SMART (translates the GROW answers) ===== -->
+    <div id="smartPhase" style="display:none;">
+      <div class="recap" id="growRecap"></div>
+      <button class="explainer-toggle" id="smartExplainerBtn" aria-expanded="false" aria-controls="smartExplainer">מה זה SMART ולמה עכשיו? ▾</button>
+      <div class="explainer" id="smartExplainer" style="display:none;">
+        ב-GROW בררת <b>מה</b> חשוב לך. <b>SMART</b> הוא הכלי שהופך את זה למשהו שאפשר לדעת אם קרה: <b>S</b> ממוקד, <b>M</b> מדיד, <b>A</b> בר-השגה, <b>R</b> רלוונטי, <b>T</b> תחום בזמן. בלי השלב הזה מטרה נשארת כוונה טובה; אחריו יש לה תאריך, מדד, וצעדים שאפשר לשבץ בציר הזמן.
+      </div>
+      <div class="lab-card">
+        <div id="smartWizard">
+          <div class="wizard-steps" id="wizardSteps"></div>
+          <div id="wizardBody"></div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
+            <button class="btn-ghost" id="wizardBackBtn">חזרה</button>
+            <button class="btn-primary" id="wizardNextBtn" style="padding:11px 24px; font-size:13.5px;">הבא</button>
+          </div>
+        </div>
+        <div id="smartSummary" style="display:none;">
+          <div style="font-size:12px; color:var(--ink-soft); margin-bottom:10px;">יעד SMART</div>
+          <div class="serif" id="labSmart" style="font-size:17.5px; line-height:1.65; margin-bottom:16px;"></div>
+          <div id="labTags" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;"></div>
+          <button class="btn-ghost" id="wizardEditBtn" style="padding:2px; font-size:12.5px; text-decoration:underline; text-underline-offset:2px;">לערוך מחדש את היעד</button>
+        </div>
+      </div>
+    </div>
+    <div id="labStepsSection" style="display:none;">
+      <div style="font-size:14px; font-weight:600; margin-bottom:6px;">צעדים ראשונים</div>
+      <div id="labSteps" style="flex:1; overflow:auto;"></div>
+      <button class="btn-primary" id="labCommitBtn" style="margin-top:20px; width:100%;">לשבץ בציר הזמן</button>
+    </div>
+  </div>
+
+  <!-- ============ OVERLAY: MONTHLY REFLECTION ============ -->
+  <div class="scrim" id="reflScrim"></div>
+  <div class="modal" id="reflModal">
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:6px;">
+      <h1 class="serif" style="font-size:22px; font-weight:500; margin:0;">רפלקציה חודשית · נובמבר</h1>
+      <button id="reflCloseBtn" style="background:none; border:none; margin-top:6px;" aria-label="סגירה"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 2L14 14M14 2L2 14" stroke="var(--ink-faint)" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+    </div>
+    <div style="font-size:13.5px; color:var(--ink-soft); margin-bottom:6px;">רגע לפני שממשיכים — הצצה למה שהיה</div>
+    <div>
+      <div class="refl-row">
+        <div class="refl-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M2 12C4.5 7 8 5 12 5C16 5 19.5 7 22 12C19.5 17 16 19 12 19C8 19 4.5 17 2 12Z" stroke="var(--accent-ink)" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="var(--accent-ink)" stroke-width="1.5"/></svg></div>
+        <div style="flex:1;"><div style="font-size:14.5px; font-weight:600; margin-bottom:4px;">רואים</div><div id="reflSees" style="font-size:13.5px; color:var(--ink-soft); line-height:1.6;"></div></div>
+      </div>
+      <div class="refl-row">
+        <div class="refl-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M9 18H15M10 21H14M8 12C8 8.5 9.5 6 12 6C14.5 6 16 8.5 16 12C16 14 14.5 15 14 16.5H10C9.5 15 8 14 8 12Z" stroke="var(--accent-ink)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div style="flex:1;"><div style="font-size:14.5px; font-weight:600; margin-bottom:6px;">חושבים</div><textarea id="reflThinks" class="field-input" style="min-height:52px; font-size:13.5px;" placeholder="מה עולה לך מזה?"></textarea></div>
+      </div>
+      <div class="refl-row">
+        <div class="refl-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M8.5 9C8.5 6.5 10 5 12 5C14 5 15.5 6.3 15.5 8C15.5 10.5 12.5 10.5 12.5 13.5" stroke="var(--accent-ink)" stroke-width="1.5" stroke-linecap="round"/><circle cx="12.5" cy="17.3" r="1.1" fill="var(--accent-ink)"/></svg></div>
+        <div style="flex:1;"><div style="font-size:14.5px; font-weight:600; margin-bottom:6px;">תוהים</div><textarea id="reflWonders" class="field-input" style="min-height:52px; font-size:13.5px;" placeholder="מה עוד את תוהה לגביו?"></textarea></div>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:24px;">
+      <button class="btn-ghost" id="reflLaterBtn">לא עכשיו</button>
+      <button class="btn-primary" id="reflCommitBtn">לשלב בקנבס</button>
+    </div>
+  </div>
+
+  <!-- ============ OVERLAY: ONE-PAGE SNAPSHOT ============ -->
+  <div class="scrim" id="snapshotScrim"></div>
+  <div class="modal" id="snapshotModal" style="width:680px;">
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:18px;">
+      <div>
+        <div style="font-size:12px; color:var(--ink-faint); margin-bottom:4px;">תמצית שנתית · מצפן פדגוגי</div>
+        <h1 class="serif" style="font-size:23px; font-weight:500; margin:0;">שגרת קריאה עצמאית לכל הכיתה</h1>
+      </div>
+      <button id="snapshotCloseBtn" style="background:none; border:none; margin-top:6px;" aria-label="סגירה"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 2L14 14M14 2L2 14" stroke="var(--ink-faint)" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+    </div>
+    <div style="font-size:12px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.05em; margin-bottom:10px;">שתי האבנים הגדולות של השנה</div>
+    <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:22px;">
+      <div style="background:var(--card-alt); border-radius:12px; padding:16px 18px;">
+        <div style="font-size:14px; font-weight:600; margin-bottom:4px;">שגרת קריאה של בוקר</div>
+        <div style="font-size:13px; color:var(--ink-soft); line-height:1.6;">עד סוף ינואר, כל תלמידי הכיתה יקראו באופן עצמאי 10 דקות ברצף.</div>
+      </div>
+      <div style="background:var(--card-alt); border-radius:12px; padding:16px 18px;">
+        <div style="font-size:14px; font-weight:600; margin-bottom:4px;">תקשורת הורים שבועית קבועה</div>
+        <div style="font-size:13px; color:var(--ink-soft); line-height:1.6;">החל מנובמבר, כל הורה מקבל עדכון קצר וקבוע אחת לשבוע.</div>
+      </div>
+    </div>
+    <div style="font-size:12px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.05em; margin-bottom:10px;">תאריכי דרך</div>
+    <div style="font-size:13.5px; color:var(--ink-soft); line-height:2;">
+      נובמבר — בחירת ספרי פתיחה · דצמבר — לב הזהירות: חופשת חנוכה · ינואר — מדידת אמצע דרך · יוני — תוצר הסיום
+    </div>
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:26px;">
+      <button class="btn-ghost" id="snapshotCloseBtn2">סגירה</button>
+      <button class="btn-primary" id="snapshotPrintBtn">הדפסה</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+</div>
+</div>
+</div>
+
+<script>
+(function(){
+  var appState = { challenge: '', reflectionNote: null };
+  var triageQueue = [];
+  var triageDone = [];
+  var counts = { control: 0, influence: 0, nocontrol: 0 };
+  var history = [];
+
+  var labContent = {
+    reading: {
+      chip: 'אבן גדולה: לבנות שגרת קריאה של בוקר',
+      steps: [
+        { text: 'לבחור חמישה ספרי פתיחה לפי רמות', month: 'נובמבר', size: 'S' },
+        { text: 'להקצות 10 דקות קריאה בתחילת כל יום', month: 'נובמבר', size: 'S' },
+        { text: 'להריץ מדידה קצרה באמצע הדרך', month: 'ינואר', size: 'M' }
+      ]
+    },
+    parents: {
+      chip: 'אבן גדולה: תקשורת הורים שבועית קבועה',
+      steps: [
+        { text: 'לבחור ערוץ תקשורת אחיד לכל ההורים', month: 'נובמבר', size: 'S' },
+        { text: 'להכין תבנית עדכון שבועית קצרה', month: 'נובמבר', size: 'S' },
+        { text: 'לתאם עם הצוות שעת שליחה קבועה', month: 'דצמבר', size: 'S' }
+      ]
+    }
+  };
+
+  /* ---- PHASE 1: GROW — a real four-question thinking process, whose answers feed SMART ---- */
+  var GROW_STEPS = [
+    { key: 'g', letter: 'G', caption: 'מטרה', title: 'מטרה (Goal)', hint: 'מה היית רוצה שיהיה שונה בסוף השנה?',
+      why: 'זו התמונה הגדולה — הכיוון, לא המספרים. בלי "איך" ובלי מדדים, אלה יבואו בשלב 2.',
+      placeholder: 'לדוגמה: שכל התלמידים ייהנו מקריאה ולא יחששו ממנה', multiline: true },
+    { key: 'r', letter: 'R', caption: 'מציאות', title: 'מציאות (Reality)', hint: 'מה קורה בפועל היום?',
+      why: 'תמונת מצב כנה, כולל מה שכבר ניסית ולא עבד. בלי זה המטרה מתנתקת מהקרקע.',
+      placeholder: 'לדוגמה: שליש מהכיתה לא מסיים ספר, ואין זמן קבוע לקריאה', multiline: true },
+    { key: 'o', letter: 'O', caption: 'אפשרויות', title: 'אפשרויות (Options)', hint: 'אילו דרכים אפשריות יש להתקדם?',
+      why: 'שורה לכל אפשרות — כמה, לא אחת. זה השלב שמונע נעילה על הפתרון הראשון, ומהשורות האלה ייגזרו הצעדים הראשונים שלך.',
+      placeholder: 'עשר דקות קריאה בתחילת כל יום\nלהביא ספרים מותאמי רמה\nלשתף הורים בקריאה בבית', multiline: true },
+    { key: 'w', letter: 'W', caption: 'מחויבות', title: 'מחויבות (Will)', hint: 'במה בחרת להתחיל בפועל?',
+      why: 'בחרי אפשרות אחת מהרשימה למעלה והפכי אותה למשפט מחייב. זה מה שהופך חשיבה לתוכנית.',
+      placeholder: 'לדוגמה: להקצות עשר דקות קריאה בתחילת כל יום, מהשבוע הבא', multiline: false }
+  ];
+  var GROW_PRESETS = {
+    reading: {
+      g: 'שכל התלמידים ייהנו מקריאה עצמאית ולא יחששו ממנה',
+      r: 'שליש מהכיתה לא מסיים ספר במהלך השנה, ואין זמן קריאה קבוע בלוח הזמנים',
+      o: 'עשר דקות קריאה שקטה בתחילת כל יום\nלהביא ספרים מותאמי רמה לכל תלמיד\nלשתף את ההורים בקריאה משותפת בבית',
+      w: 'להקצות עשר דקות קריאה בתחילת כל יום'
+    },
+    parents: {
+      g: 'שההורים יהיו שותפים מעודכנים, בלי שאצטרך לכבות שריפות בדיעבד',
+      r: 'התקשורת מגיעה בעיקר כשיש בעיה, בערוצים שונים ובלי קצב קבוע',
+      o: 'עדכון שבועי קצר בפורמט אחיד\nלרכז את התקשורת בערוץ אחד בלבד\nלקבוע שעה קבועה לשליחה',
+      w: 'לשלוח עדכון שבועי קצר בפורמט אחיד, בכל יום חמישי'
+    }
+  };
+  var growStep = 0;
+  var growData = {};
+  /* the school year the canvas covers (תשפ"ז: Oct 2026 – Jun 2027), so a month picked in
+     the W stage can become a real dated milestone on the timeline */
+  var SCHOOL_MONTHS = [
+    { name: 'אוקטובר', y: 2026, m: 9 }, { name: 'נובמבר', y: 2026, m: 10 }, { name: 'דצמבר', y: 2026, m: 11 },
+    { name: 'ינואר', y: 2027, m: 0 }, { name: 'פברואר', y: 2027, m: 1 }, { name: 'מרץ', y: 2027, m: 2 },
+    { name: 'אפריל', y: 2027, m: 3 }, { name: 'מאי', y: 2027, m: 4 }, { name: 'יוני', y: 2027, m: 5 }
+  ];
+  function schoolMonthDate(name) {
+    for (var i = 0; i < SCHOOL_MONTHS.length; i++) {
+      if (SCHOOL_MONTHS[i].name === name) return new Date(SCHOOL_MONTHS[i].y, SCHOOL_MONTHS[i].m, 15);
+    }
+    return null;
+  }
+
+  var WIZARD_STEPS = [
+    { key: 's', letter: 'S', title: 'ממוקד (Specific)', hint: 'מה בדיוק תרצי שיקרה?' },
+    { key: 'm', letter: 'M', title: 'מדיד (Measurable)', hint: 'איך תדעי שזה קרה?' },
+    { key: 'a', letter: 'A', title: 'בר-השגה (Achievable)', hint: 'אילו משאבים תצטרכי כדי שזה יקרה?' },
+    { key: 'r', letter: 'R', title: 'רלוונטי (Relevant)', hint: 'לאיזו מטרת-על זה מתחבר?' },
+    { key: 't', letter: 'T', title: 'תחום בזמן (Time-bound)', hint: 'עד מתי?' }
+  ];
+  /* both lists are open: the teacher can add a domain / resource of her own, and it
+     persists for the rest of the session so it can be reused on other goals */
+  var RESOURCE_OPTIONS = ['זמן הכנה קבוע', 'חומרי הוראה / ספרים', 'ליווי פדגוגי', 'שיתוף פעולה עם ההורים', 'תמיכת הנהלה', 'תקציב קטן'];
+  var RELEVANT_TAGS = ['קריאה ואוריינות', 'תקשורת הורים', 'ניהול כיתה', 'הערכה ומדידה', 'רווחה רגשית'];
+  var CUSTOM_TAGS = [];
+  var CUSTOM_RESOURCES = [];
+  var ADD_OWN_VALUE = '__add_own__';
+  function allTags() { return RELEVANT_TAGS.concat(CUSTOM_TAGS); }
+  function allResources() { return RESOURCE_OPTIONS.concat(CUSTOM_RESOURCES); }
+  var WIZARD_PRESETS = {
+    reading: { s: 'כל תלמידי הכיתה יקראו באופן עצמאי 10 דקות ברצף בתחילת היום', mType: 'binary', mNumber: '10', mUnit: 'דקות רצופות', mBinary: 'כל התלמידים קוראים 10 דקות ברצף בלי הפרעה', resources: ['חומרי הוראה / ספרים', 'זמן הכנה קבוע'], tag: 'קריאה ואוריינות', date: '2027-01-31' },
+    parents: { s: 'כל הורה יקבל עדכון קצר וקבוע אחת לשבוע בפורמט אחיד', mType: 'binary', mNumber: '', mUnit: '', mBinary: 'כל ההורים מקבלים עדכון שבועי בפורמט קבוע', resources: ['זמן הכנה קבוע', 'תמיכת הנהלה'], tag: 'תקשורת הורים', date: '2026-12-15' }
+  };
+  var wizardStep = 0;
+  var wizardData = {};
+
+  function esc(s) { return (s || '').toString().replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+
+  function defaultWizardData(key, fallbackLabel) {
+    if (key && WIZARD_PRESETS[key]) {
+      var p = WIZARD_PRESETS[key];
+      return { s: p.s, mType: p.mType, mNumber: p.mNumber, mUnit: p.mUnit, mBinary: p.mBinary, resources: p.resources.slice(), tag: p.tag, date: p.date };
+    }
+    /* _sSeed remembers the untouched starting value of S, so entering the SMART phase can
+       upgrade it to the (more considered) GROW goal without clobbering real teacher edits */
+    return { s: fallbackLabel || '', _sSeed: fallbackLabel || '', mType: 'binary', mNumber: '', mUnit: '', mBinary: '', resources: [], tag: '', date: '' };
+  }
+
+  function formatHeDate(iso) {
+    if (!iso) return 'תאריך יעד שייקבע';
+    var d = new Date(iso);
+    if (isNaN(d)) return 'תאריך יעד שייקבע';
+    var months = ['בינואר', 'בפברואר', 'במרץ', 'באפריל', 'במאי', 'ביוני', 'ביולי', 'באוגוסט', 'בספטמבר', 'באוקטובר', 'בנובמבר', 'בדצמבר'];
+    return d.getDate() + ' ' + months[d.getMonth()];
+  }
+
+  function defaultGrowData(key) {
+    if (key && GROW_PRESETS[key]) {
+      var p = GROW_PRESETS[key];
+      return { g: p.g, r: p.r, o: p.o, w: p.w, wMonth: '', optMonths: [] };
+    }
+    return { g: '', r: '', o: '', w: '', wMonth: '', optMonths: [] };
+  }
+
+  function optionLines() {
+    return (growData.o || '').split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
+  }
+  /* one shared row model, so the W-stage scheduler and the derived micro-steps never disagree */
+  function growPlanRows() {
+    var rows = [{ kind: 'w', idx: -1, text: (growData.w || '').trim() }];
+    optionLines().forEach(function (l, i) { rows.push({ kind: 'opt', idx: i, text: l }); });
+    return rows;
+  }
+  function rowMonth(r) {
+    return r.kind === 'w' ? (growData.wMonth || '') : ((growData.optMonths || [])[r.idx] || '');
+  }
+  function setRowMonth(r, v) {
+    if (r.kind === 'w') { growData.wMonth = v; return; }
+    growData.optMonths = growData.optMonths || [];
+    growData.optMonths[r.idx] = v;
+  }
+
+  function renderStepScheduler() {
+    var rows = growPlanRows();
+    var html = '<div class="sched-block"><div class="sched-title">מתי לשבץ כל צעד?</div>' +
+      '<div class="sched-note">מה שתשבצי לחודש ייכנס לציר הזמן. אפשר להשאיר "עוד לא".</div>';
+    rows.forEach(function (r, i) {
+      var mo = rowMonth(r);
+      var isW = r.kind === 'w';
+      var label = r.text || 'הצעד שתכתבי למעלה';
+      var opts = '<option value=""' + (mo ? '' : ' selected') + '>עוד לא</option>' +
+        SCHOOL_MONTHS.map(function (m) {
+          return '<option value="' + esc(m.name) + '"' + (mo === m.name ? ' selected' : '') + '>' + m.name + '</option>';
+        }).join('');
+      html += '<div class="sched-row">' +
+        (isW ? '<span class="sched-badge">הצעד הראשון</span>' : '') +
+        '<span class="sched-text' + (r.text ? '' : ' muted') + '"' + (isW ? ' id="schedWLabel"' : '') + '>' + esc(label) + '</span>' +
+        '<select class="sched-select" data-sched-index="' + i + '">' + opts + '</select>' +
+        '</div>';
+    });
+    return html + '</div>';
+  }
+
+  function renderGrowTrack() {
+    document.getElementById('growTrack').innerHTML = GROW_STEPS.map(function (s, i) {
+      var cls = i === growStep ? 'active' : ((growData[s.key] || '').trim() ? 'done' : 'pending');
+      var inner = cls === 'done'
+        ? '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7L5.5 10.5L12 3" stroke="var(--paper)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+        : '<span class="grow-letter">' + s.letter + '</span>';
+      return '<div class="grow-step"><div class="grow-circle ' + cls + '">' + inner + '</div><div class="grow-caption">' + s.caption + '</div></div>';
+    }).join('<div class="grow-line"></div>');
+  }
+
+  function renderGrowStep() {
+    var step = GROW_STEPS[growStep];
+    renderGrowTrack();
+    var body = '<div class="wizard-label">' + step.letter + ' · ' + step.title + '</div>' +
+      '<div class="wizard-question">' + step.hint + '</div>' +
+      '<div class="grow-why">' + step.why + '</div>';
+    if (step.multiline) {
+      body += '<textarea id="growField" class="field-input" style="min-height:' + (step.key === 'o' ? '96' : '80') + 'px;" placeholder="' + esc(step.placeholder) + '">' + esc(growData[step.key]) + '</textarea>';
+    } else {
+      body += '<input id="growField" class="field-input" placeholder="' + esc(step.placeholder) + '" value="' + esc(growData[step.key]) + '">';
+    }
+    /* the W stage is where the teacher also says WHEN each step happens */
+    if (step.key === 'w') body += renderStepScheduler();
+    document.getElementById('growBody').innerHTML = body;
+
+    if (step.key === 'w') {
+      var rows = growPlanRows();
+      document.querySelectorAll('.sched-select').forEach(function (sel) {
+        sel.addEventListener('change', function () {
+          setRowMonth(rows[parseInt(sel.getAttribute('data-sched-index'), 10)], sel.value);
+        });
+      });
+      /* keep the commitment row's label in step with what is being typed, without
+         re-rendering (which would steal focus from the field) */
+      var wField = document.getElementById('growField');
+      wField.addEventListener('input', function () {
+        var lbl = document.getElementById('schedWLabel');
+        if (!lbl) return;
+        var v = wField.value.trim();
+        lbl.textContent = v || 'הצעד שתכתבי למעלה';
+        lbl.className = 'sched-text' + (v ? '' : ' muted');
+      });
+    }
+    document.getElementById('growBackBtn').style.visibility = growStep === 0 ? 'hidden' : 'visible';
+    document.getElementById('growNextBtn').textContent = growStep === GROW_STEPS.length - 1 ? 'לתרגם ליעד SMART' : 'הבא';
+  }
+
+  function commitGrowStep() {
+    var field = document.getElementById('growField');
+    if (field) growData[GROW_STEPS[growStep].key] = field.value.trim();
+  }
+
+  /* the O (options) lines and the W (will) commitment become the actual first micro-steps,
+     carrying whatever month the teacher assigned them in the W stage — this is what makes
+     GROW consequential rather than decorative */
+  function growDerivedSteps() {
+    var out = [];
+    growPlanRows().forEach(function (r) {
+      if (!r.text) return;
+      if (out.some(function (x) { return x.text === r.text; })) return;
+      var mo = rowMonth(r);
+      out.push({ text: r.text, month: mo || 'לשיבוץ', size: 'S', schedMonth: mo, isCommitment: r.kind === 'w' });
+    });
+    return out;
+  }
+
+  function renderGrowRecap() {
+    var rows = [];
+    if ((growData.g || '').trim()) rows.push('<div class="recap-row"><b>המטרה שניסחת:</b> ' + esc(growData.g) + '</div>');
+    if ((growData.r || '').trim()) rows.push('<div class="recap-row"><b>המציאות היום:</b> ' + esc(growData.r) + '</div>');
+    var optCount = (growData.o || '').split('\n').filter(function (l) { return l.trim(); }).length;
+    if (optCount) rows.push('<div class="recap-row"><b>אפשרויות שהעלית:</b> ' + optCount + '</div>');
+    if ((growData.w || '').trim()) rows.push('<div class="recap-row"><b>בחרת להתחיל ב:</b> ' + esc(growData.w) + '</div>');
+    var recap = document.getElementById('growRecap');
+    if (!rows.length) { recap.style.display = 'none'; return; }
+    recap.style.display = 'block';
+    recap.innerHTML = '<div class="recap-title">מה שעלה בשלב החשיבה (GROW)</div>' + rows.join('');
+  }
+
+  function showGrowPhase() {
+    document.getElementById('growPhase').style.display = 'block';
+    document.getElementById('smartPhase').style.display = 'none';
+    document.getElementById('labStepsSection').style.display = 'none';
+    document.getElementById('labPhaseGrow').className = 'lab-phase active';
+    document.getElementById('labPhaseSmart').className = 'lab-phase';
+    renderGrowStep();
+  }
+
+  function showSmartPhase() {
+    document.getElementById('growPhase').style.display = 'none';
+    document.getElementById('smartPhase').style.display = 'block';
+    document.getElementById('labPhaseGrow').className = 'lab-phase done';
+    document.getElementById('labPhaseSmart').className = 'lab-phase active';
+    renderGrowRecap();
+    /* carry the GROW goal into S while S is still its untouched starting value */
+    if ((growData.g || '').trim() && (!wizardData.s || wizardData.s === wizardData._sSeed)) {
+      wizardData.s = growData.g.trim();
+    }
+    renderLabSteps();
+    showWizardMode();
+    renderWizardStep();
+  }
+
+  function renderWizardStep() {
+    var step = WIZARD_STEPS[wizardStep];
+    document.getElementById('wizardSteps').innerHTML = WIZARD_STEPS.map(function (s, i) {
+      var cls = i === wizardStep ? ' active' : (i < wizardStep ? ' done' : '');
+      return '<div class="wizard-dot' + cls + '">' + s.letter + '</div>';
+    }).join('<div class="wizard-dot-line"></div>');
+
+    var body = '<div class="wizard-label">' + step.letter + ' · ' + step.title + '</div><div class="wizard-question">' + step.hint + '</div>';
+    if (step.key === 's') {
+      body += '<textarea id="wizS" class="field-input" style="min-height:76px;" placeholder="לדוגמה: כל תלמידי הכיתה יקראו באופן עצמאי 10 דקות ברצף">' + esc(wizardData.s) + '</textarea>';
+    } else if (step.key === 'm') {
+      body += '<div class="m-toggle">' +
+        '<button type="button" class="m-toggle-btn' + (wizardData.mType === 'numeric' ? ' active' : '') + '" data-mtype="numeric">מדד מספרי</button>' +
+        '<button type="button" class="m-toggle-btn' + (wizardData.mType !== 'numeric' ? ' active' : '') + '" data-mtype="binary">הושלם / לא הושלם</button>' +
+        '</div>';
+      if (wizardData.mType === 'numeric') {
+        body += '<div style="display:flex; gap:8px; margin-top:12px;">' +
+          '<input id="wizMNumber" class="field-input" type="number" placeholder="יעד מספרי" value="' + esc(wizardData.mNumber) + '" style="flex:1;">' +
+          '<input id="wizMUnit" class="field-input" placeholder="יחידה, למשל: דקות" value="' + esc(wizardData.mUnit) + '" style="flex:1;">' +
+          '</div>';
+      } else {
+        body += '<input id="wizMBinary" class="field-input" placeholder="מה נחשב הושלם?" value="' + esc(wizardData.mBinary) + '" style="margin-top:12px;">';
+      }
+    } else if (step.key === 'a') {
+      body += '<div class="resource-list">' + allResources().map(function (r) {
+        var checked = wizardData.resources.indexOf(r) > -1;
+        var own = CUSTOM_RESOURCES.indexOf(r) > -1 ? '<span class="own-tag">שלי</span>' : '';
+        return '<label class="resource-row"><input type="checkbox" class="wizResource" value="' + esc(r) + '"' + (checked ? ' checked' : '') + '><span>' + esc(r) + own + '</span></label>';
+      }).join('') + '</div>' +
+        '<div class="add-own"><input id="newResourceInput" class="field-input" placeholder="משאב שלא ברשימה — להוסיף משלי"><button type="button" class="add-own-btn" id="addResourceBtn">הוספה</button></div>';
+    } else if (step.key === 'r') {
+      var tagOpts = allTags().map(function (t) {
+        var own = CUSTOM_TAGS.indexOf(t) > -1 ? ' (שלי)' : '';
+        return '<option value="' + esc(t) + '"' + (wizardData.tag === t ? ' selected' : '') + '>' + esc(t) + own + '</option>';
+      }).join('');
+      body += '<select id="wizTag" class="field-input">' +
+        '<option value=""' + (wizardData.tag ? '' : ' selected') + '>— לבחור תחום —</option>' +
+        tagOpts +
+        '<option value="' + ADD_OWN_VALUE + '">+ להוסיף תחום משלי…</option>' +
+        '</select>' +
+        '<div class="add-own" id="newTagRow" style="display:none;"><input id="newTagInput" class="field-input" placeholder="שם התחום שלך, למשל: שילוב תלמידי חינוך מיוחד"><button type="button" class="add-own-btn" id="addTagBtn">הוספה</button></div>';
+    } else if (step.key === 't') {
+      body += '<input id="wizDate" class="field-input" type="date" value="' + esc(wizardData.date) + '">';
+    }
+    document.getElementById('wizardBody').innerHTML = body;
+
+    if (step.key === 'm') {
+      document.querySelectorAll('.m-toggle-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          commitWizardStep();
+          wizardData.mType = btn.getAttribute('data-mtype');
+          renderWizardStep();
+        });
+      });
+    }
+    if (step.key === 'a') {
+      var addRes = function () {
+        var input = document.getElementById('newResourceInput');
+        var name = input.value.trim();
+        if (!name) return;
+        if (allResources().indexOf(name) === -1) CUSTOM_RESOURCES.push(name);
+        wizardData.resources = Array.from(document.querySelectorAll('.wizResource:checked')).map(function (cb) { return cb.value; });
+        if (wizardData.resources.indexOf(name) === -1) wizardData.resources.push(name);
+        renderWizardStep();
+      };
+      document.getElementById('addResourceBtn').addEventListener('click', addRes);
+      document.getElementById('newResourceInput').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); addRes(); }
+      });
+    }
+    if (step.key === 'r') {
+      var sel = document.getElementById('wizTag');
+      var row = document.getElementById('newTagRow');
+      sel.addEventListener('change', function () {
+        if (sel.value === ADD_OWN_VALUE) {
+          row.style.display = 'flex';
+          document.getElementById('newTagInput').focus();
+        } else {
+          row.style.display = 'none';
+          wizardData.tag = sel.value;
+        }
+      });
+      var addTag = function () {
+        var input = document.getElementById('newTagInput');
+        var name = input.value.trim();
+        if (!name) return;
+        if (allTags().indexOf(name) === -1) CUSTOM_TAGS.push(name);
+        wizardData.tag = name;
+        renderWizardStep();
+      };
+      document.getElementById('addTagBtn').addEventListener('click', addTag);
+      document.getElementById('newTagInput').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); addTag(); }
+      });
+    }
+    /* at the first SMART step, "back" returns to the GROW thinking phase rather than dead-ending */
+    document.getElementById('wizardBackBtn').textContent = wizardStep === 0 ? '↶ חזרה לשלב החשיבה' : 'חזרה';
+    document.getElementById('wizardNextBtn').textContent = wizardStep === WIZARD_STEPS.length - 1 ? 'לראות את היעד' : 'הבא';
+  }
+
+  function commitWizardStep() {
+    var step = WIZARD_STEPS[wizardStep];
+    if (step.key === 's') {
+      wizardData.s = document.getElementById('wizS').value.trim();
+    } else if (step.key === 'm') {
+      if (wizardData.mType === 'numeric') {
+        wizardData.mNumber = document.getElementById('wizMNumber').value.trim();
+        wizardData.mUnit = document.getElementById('wizMUnit').value.trim();
+      } else {
+        wizardData.mBinary = document.getElementById('wizMBinary').value.trim();
+      }
+    } else if (step.key === 'a') {
+      wizardData.resources = Array.from(document.querySelectorAll('.wizResource:checked')).map(function (cb) { return cb.value; });
+    } else if (step.key === 'r') {
+      var v = document.getElementById('wizTag').value;
+      /* never store the "+ add my own" sentinel as if it were a real domain */
+      if (v !== ADD_OWN_VALUE) wizardData.tag = v;
+    } else if (step.key === 't') {
+      wizardData.date = document.getElementById('wizDate').value;
+    }
+  }
+
+  function showWizardMode() {
+    document.getElementById('smartWizard').style.display = 'block';
+    document.getElementById('smartSummary').style.display = 'none';
+    document.getElementById('labStepsSection').style.display = 'none';
+  }
+  function showSummaryMode() {
+    document.getElementById('smartWizard').style.display = 'none';
+    document.getElementById('smartSummary').style.display = 'block';
+    document.getElementById('labStepsSection').style.display = 'block';
+  }
+
+  function finishWizard() {
+    var mPart = wizardData.mType === 'numeric'
+      ? ('כפי שיימדד ב-' + (wizardData.mNumber || '—') + ' ' + (wizardData.mUnit || ''))
+      : ('כפי שהושלם יוגדר כ"' + (wizardData.mBinary || 'המטרה מתקיימת בפועל') + '"');
+    var sentence = (wizardData.s || 'הפעולה שהוגדרה') + ', עד ' + formatHeDate(wizardData.date) + ', ' + mPart + '.';
+    document.getElementById('labSmart').textContent = sentence;
+    var tags = [];
+    if (wizardData.tag) tags.push(wizardData.tag);
+    tags.push(wizardData.mType === 'numeric' ? 'מדיד מספרית' : 'מדיד בינארית');
+    if (wizardData.resources.length) {
+      tags.push(wizardData.resources.length === 1 ? 'משאב אחד מזוהה' : wizardData.resources.length + ' משאבים מזוהים');
+    }
+    document.getElementById('labTags').innerHTML = tags.map(function (t) { return '<span class="smart-tag">' + t + '</span>'; }).join('');
+    showSummaryMode();
+  }
+
+  var screens = document.querySelectorAll('.screen');
+  var labScrim = document.getElementById('labScrim');
+  var labDrawer = document.getElementById('labDrawer');
+  var reflScrim = document.getElementById('reflScrim');
+  var reflModal = document.getElementById('reflModal');
+  var snapshotScrim = document.getElementById('snapshotScrim');
+  var snapshotModal = document.getElementById('snapshotModal');
+  var fabPop = document.getElementById('fabPopover');
+  var templatesPop = document.getElementById('templatesPopover');
+  var toast = document.getElementById('toast');
+  var toastTimer;
+  var funnelMatrix = document.getElementById('funnelMatrix');
+  var constraintPop = document.getElementById('constraintPopover');
+
+  /* ---- real תשפ"ז calendar data ---- */
+  var TODAY_DEMO = new Date(2026, 11, 1);      // demo "today" marker
+
+  var HEBREW_MONTHS = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
+  function monthName(d) { return HEBREW_MONTHS[d.getMonth()]; }
+  function fmtRange(p) {
+    var s = monthName(p.start), e = monthName(p.end);
+    return s === e ? s : (s + '–' + e);
+  }
+  function fmtSpan(d1, d2) {
+    if (d1.getTime() === d2.getTime()) return monthName(d1) + ' ' + d1.getDate();
+    if (d1.getMonth() === d2.getMonth()) return d1.getDate() + '–' + d2.getDate() + ' ב' + monthName(d1);
+    return d1.getDate() + ' ב' + monthName(d1) + ' – ' + d2.getDate() + ' ב' + monthName(d2);
+  }
+
+  // pulled from the official תשפ"ז ("לוח שנה גאנט תשפ"ז") school calendar
+  var NATIONAL_EVENTS = [
+    { start: new Date(2026, 9, 5), end: new Date(2026, 9, 5), label: 'יום הזיכרון לאסון 7 באוקטובר', type: 'marker' },
+    { start: new Date(2026, 10, 9), end: new Date(2026, 10, 9), label: 'חג הסיגד', type: 'marker' },
+    { start: new Date(2026, 11, 5), end: new Date(2026, 11, 12), label: 'חופשת חנוכה', type: 'break' },
+    { start: new Date(2027, 0, 23), end: new Date(2027, 0, 23), label: 'ט"ו בשבט', type: 'marker' },
+    { start: new Date(2027, 1, 6), end: new Date(2027, 1, 6), label: 'יום המשפחה', type: 'marker' },
+    { start: new Date(2027, 2, 22), end: new Date(2027, 2, 24), label: 'פורים', type: 'break' },
+    { start: new Date(2027, 3, 13), end: new Date(2027, 3, 29), label: 'חופשת פסח', type: 'break' },
+    { start: new Date(2027, 4, 4), end: new Date(2027, 4, 4), label: 'יום הזיכרון לשואה', type: 'marker' },
+    { start: new Date(2027, 4, 11), end: new Date(2027, 4, 12), label: 'יום הזיכרון ועצמאות', type: 'break' },
+    { start: new Date(2027, 4, 25), end: new Date(2027, 4, 25), label: 'ל"ג בעומר', type: 'marker' },
+    { start: new Date(2027, 5, 4), end: new Date(2027, 5, 4), label: 'יום ירושלים', type: 'marker' },
+    { start: new Date(2027, 5, 10), end: new Date(2027, 5, 12), label: 'שבועות', type: 'break' }
+  ];
+
+  var PHASES = [
+    { start: new Date(2026, 9, 1), end: new Date(2026, 10, 30), label: 'פתיחה ובנייה', color: 'oklch(38% 0.1 262)' },
+    { start: new Date(2026, 11, 1), end: new Date(2027, 0, 31), label: 'מרתון חורף', color: 'oklch(46% 0.12 255)' },
+    { start: new Date(2027, 1, 1), end: new Date(2027, 2, 31), label: 'רבעון אביב מוקדם', color: 'oklch(54% 0.13 245)' },
+    { start: new Date(2027, 3, 1), end: new Date(2027, 4, 31), label: 'ספרינט לקראת סיום', color: 'oklch(46% 0.12 235)' },
+    { start: new Date(2027, 5, 1), end: new Date(2027, 5, 30), label: 'סיכום ותוצר', color: 'oklch(38% 0.1 262)' }
+  ];
+
+  var DEFAULT_MILESTONES = [
+    { date: new Date(2026, 10, 10), text: 'לבחור 5 ספרי פתיחה', size: 'S', done: true },
+    { date: new Date(2026, 11, 8), text: 'לשלוח עדכון להורים לפני החופשה', size: 'S', done: false },
+    { date: new Date(2027, 0, 15), text: 'מדידת אמצע דרך', size: 'S', done: false },
+    { date: new Date(2027, 1, 10), text: 'להכין חומרי הערכה לרבעון', size: 'S', done: false },
+    { date: new Date(2027, 2, 23), text: 'שיחת הורים ממוקדת', size: 'S', done: false },
+    { date: new Date(2027, 4, 18), text: 'הערכת סיכום כיתתית', size: 'M', done: false }
+  ];
+  function cloneMilestones() {
+    return DEFAULT_MILESTONES.map(function (m) { return { date: new Date(m.date), text: m.text, size: m.size, done: m.done }; });
+  }
+  var MILESTONES = cloneMilestones();
+
+  var constraints = []; // user-added: { label, start, end }
+  var belatamLog = []; // user-added: { text }
+
+  function isLayerOn(name) {
+    var el = document.querySelector('.layer-chip[data-layer="' + name + '"]');
+    return !!(el && el.classList.contains('on'));
+  }
+
+  function activeBreakBands() {
+    var bands = [];
+    if (isLayerOn('national')) {
+      bands = bands.concat(NATIONAL_EVENTS.filter(function (e) { return e.type === 'break'; }));
+    }
+    if (isLayerOn('constraints')) bands = bands.concat(constraints);
+    return bands;
+  }
+
+  var expandedPhaseIdx = findTodayPhaseIndex();
+
+  function findTodayPhaseIndex() {
+    for (var i = 0; i < PHASES.length; i++) {
+      if (TODAY_DEMO >= PHASES[i].start && TODAY_DEMO <= PHASES[i].end) return i;
+    }
+    return null;
+  }
+
+  function phaseMilestones(p) {
+    return MILESTONES.filter(function (m) { return m.date >= p.start && m.date <= p.end; });
+  }
+
+  function phaseEvents(p) {
+    var items = [];
+    if (isLayerOn('national')) {
+      NATIONAL_EVENTS.forEach(function (ev) {
+        if (ev.end >= p.start && ev.start <= p.end) items.push({ label: ev.label, start: ev.start, end: ev.end, kind: ev.type, colorVar: '--warn' });
+      });
+    }
+    if (isLayerOn('constraints')) {
+      constraints.forEach(function (c) {
+        if (c.end >= p.start && c.start <= p.end) items.push({ label: c.label, start: c.start, end: c.end, kind: 'constraint', colorVar: '--constraint' });
+      });
+    }
+    return items;
+  }
+
+  function phaseHasCollision(p) {
+    var bands = activeBreakBands();
+    return phaseMilestones(p).some(function (m) { return bands.some(function (b) { return m.date >= b.start && m.date <= b.end; }); });
+  }
+
+  function msRowHtml(m, collide) {
+    var checkHtml = m.done
+      ? '<span class="chk" style="background:var(--accent); border-color:var(--accent); display:flex; align-items:center; justify-content:center;"><svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M1.5 4.5L3.3 6.5L7.5 2" stroke="var(--paper)" stroke-width="1.4" stroke-linecap="round"/></svg></span>'
+      : '<span class="chk"></span>';
+    var warnHtml = collide
+      ? '<span class="warn-badge" style="position:static;" title="מתנגש עם חסימה בלוח"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M12 3L22 20H2L12 3Z" stroke="var(--paper)" stroke-width="2.2" stroke-linejoin="round"/><path d="M12 9V13.5" stroke="var(--paper)" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="16.5" r="1" fill="var(--paper)"/></svg></span>'
+      : '';
+    return '<div class="ms-row">' +
+      '<div class="ms-left">' + checkHtml + '<span' + (m.done ? ' style="text-decoration:line-through; color:var(--ink-faint);"' : '') + '>' + m.text + '</span></div>' +
+      '<div class="ms-chips">' + warnHtml +
+        '<span class="month-chip">' + monthName(m.date) + ' ' + m.date.getDate() + '</span>' +
+        '<span class="size-chip" style="position:static;">' + m.size + '</span>' +
+      '</div></div>';
+  }
+
+  function eventRowHtml(ev) {
+    return '<div class="ms-row">' +
+      '<div class="ms-left"><span style="width:8px; height:8px; border-radius:50%; background:var(' + ev.colorVar + '); flex-shrink:0; display:inline-block;"></span>' + ev.label + '</div>' +
+      '<span class="month-chip" style="color:var(' + ev.colorVar + ');">' + fmtSpan(ev.start, ev.end) + '</span>' +
+      '</div>';
+  }
+
+  function renderPhaseSpine() {
+    var todayIdx = findTodayPhaseIndex();
+    document.getElementById('phaseSpine').innerHTML = PHASES.map(function (p, i) {
+      var ms = phaseMilestones(p);
+      var warn = phaseHasCollision(p);
+      var cls = 'phase-block' + (i === expandedPhaseIdx ? ' active' : '');
+      return '<button type="button" class="' + cls + '" data-phase-idx="' + i + '" style="background:' + p.color + ';">' +
+        (i === todayIdx ? '<span class="phase-block-today">היום</span>' : '') +
+        '<div class="phase-block-label">' + p.label + '</div>' +
+        '<div class="phase-block-meta"><span>' + ms.length + ' אבני דרך</span>' +
+        (warn ? '<span class="phase-block-warn" title="יש התנגשות בתקופה הזו">!</span>' : '') +
+        '</div></button>';
+    }).join('');
+    document.querySelectorAll('.phase-block').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var idx = parseInt(btn.getAttribute('data-phase-idx'), 10);
+        expandedPhaseIdx = (expandedPhaseIdx === idx) ? null : idx;
+        renderPhaseSpine();
+        renderPhaseDetail();
+      });
+    });
+  }
+
+  function renderPhaseDetail() {
+    var el = document.getElementById('phaseDetail');
+    if (expandedPhaseIdx == null) { el.style.display = 'none'; el.innerHTML = ''; return; }
+    el.style.display = 'block';
+    var p = PHASES[expandedPhaseIdx];
+    var bands = activeBreakBands();
+    var rows = phaseMilestones(p).map(function (m) {
+      var collide = bands.some(function (b) { return m.date >= b.start && m.date <= b.end; });
+      return { date: m.date, html: msRowHtml(m, collide) };
+    }).concat(phaseEvents(p).map(function (ev) { return { date: ev.start, html: eventRowHtml(ev) }; }));
+    rows.sort(function (a, b) { return a.date - b.date; });
+
+    var finalProductHtml = (expandedPhaseIdx === PHASES.length - 1)
+      ? '<div style="display:flex; align-items:center; gap:12px; background:var(--accent); color:var(--paper); border-radius:12px; padding:14px 16px; margin-bottom:16px;">' +
+          '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;"><path d="M3 14V2M3 2H12L10 5L12 8H3" stroke="var(--paper)" stroke-width="1.4" stroke-linejoin="round"/></svg>' +
+          '<div><div style="font-size:11px; opacity:.85;">תוצר הסיום</div><div style="font-size:13.5px;">שגרת קריאה עצמאית לכל הכיתה</div></div>' +
+        '</div>'
+      : '';
+
+    el.innerHTML =
+      '<div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:6px;">' +
+        '<h2 class="serif" style="font-size:17px; font-weight:500; margin:0;">' + p.label + '</h2>' +
+        '<span style="font-size:12px; color:var(--ink-soft);">' + fmtRange(p) + '</span>' +
+      '</div>' +
+      finalProductHtml +
+      (rows.length ? rows.map(function (r) { return r.html; }).join('') : '<div class="phase-detail-empty">אין אבני דרך או חסימות בתקופה הזו</div>');
+  }
+
+  function renderTimeline() {
+    renderPhaseSpine();
+    renderPhaseDetail();
+  }
+
+  document.querySelectorAll('.layer-chip').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      btn.classList.toggle('on');
+      renderTimeline();
+    });
+  });
+
+  function addConstraint(label, startStr, endStr) {
+    var s = new Date(startStr), e = new Date(endStr);
+    if (isNaN(s) || isNaN(e) || e < s || !label) { showToast('צריך שם וטווח תאריכים תקין'); return; }
+    constraints.push({ label: label, start: s, end: e });
+    closeConstraintPop();
+    document.getElementById('constraintLabel').value = '';
+    document.getElementById('constraintStart').value = '';
+    document.getElementById('constraintEnd').value = '';
+    renderTimeline();
+    showToast('נוסף אילוץ: ' + label + ' — נבדקה התנגשות מול המשימות המשובצות');
+  }
+
+  function setStage(n) {
+    document.querySelectorAll('.step-dot').forEach(function (dot) {
+      var stage = parseInt(dot.getAttribute('data-stage'), 10);
+      dot.classList.toggle('done', stage < n);
+      dot.classList.toggle('active', stage === n);
+    });
+  }
+
+  function closeLab() { labScrim.classList.remove('open'); labDrawer.classList.remove('open'); }
+  function closeRefl() { reflScrim.classList.remove('open'); reflModal.classList.remove('open'); }
+  function closeSnapshot() { snapshotScrim.classList.remove('open'); snapshotModal.classList.remove('open'); }
+  function closeFab() { fabPop.classList.remove('open'); }
+  function closeTemplates() { templatesPop.classList.remove('open'); }
+  function closeConstraintPop() { constraintPop.classList.remove('open'); }
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 2200);
+  }
+
+  function showYearView() {
+    document.getElementById('yearView').style.display = 'flex';
+    document.getElementById('weekView').style.display = 'none';
+    document.getElementById('yearTabBtn').classList.add('active');
+    document.getElementById('weekTabBtn').classList.remove('active');
+    fitFrame();
+  }
+  function showWeekView() {
+    document.getElementById('yearView').style.display = 'none';
+    document.getElementById('weekView').style.display = 'flex';
+    document.getElementById('yearTabBtn').classList.remove('active');
+    document.getElementById('weekTabBtn').classList.add('active');
+    fitFrame();
+  }
+
+  var stageMap = { main: 0, triage: 2, summary: 2, funnel: 3, canvas: 5 };
+  function navigateTo(target) {
+    closeLab(); closeRefl(); closeSnapshot(); closeFab(); closeTemplates(); closeConstraintPop();
+    screens.forEach(function (s) { s.classList.toggle('active', s.id === 'screen-' + target); });
+    setStage(stageMap[target] || 0);
+    if (target === 'triage') resetTriage();
+    if (target === 'funnel') ensureFunnelBuilt();
+    if (target === 'canvas') { showYearView(); renderTimeline(); }
+    fitFrame();
+  }
+
+  document.getElementById('startTriageBtn').addEventListener('click', function () {
+    appState.challenge = document.getElementById('challengeInput').value.trim();
+    navigateTo('triage');
+  });
+
+  /* ---- scale the fixed-width app frame to fit the viewport instead of forcing scroll ---- */
+  var frameScaler = document.getElementById('frameScaler');
+  var frame = document.querySelector('.app-frame');
+  var viewportScroll = document.querySelector('.viewport-scroll');
+  var MIN_FRAME_SCALE = 0.5;
+  function fitFrame() {
+    frameScaler.style.width = '';
+    frameScaler.style.height = '';
+    frame.style.transform = 'none';
+    var naturalW = frame.offsetWidth;
+    var naturalH = frame.offsetHeight;
+    if (!naturalW || !naturalH) return;
+    var availW = viewportScroll.clientWidth - 32;
+    var availH = window.innerHeight - viewportScroll.getBoundingClientRect().top - 24;
+    var scale = Math.min(availW / naturalW, availH / naturalH, 1);
+    if (scale < MIN_FRAME_SCALE) scale = MIN_FRAME_SCALE;
+    if (scale < 0.999) {
+      /* the transform (which does the actual visual shrinking) goes on .app-frame,
+         anchored at its own top-left corner so the shrunk box lands exactly inside
+         frameScaler's box; frameScaler only gets the matching explicit size so it
+         reserves the correct (smaller) footprint in the page's layout flow. Putting
+         both the transform AND the shrunk width/height on frameScaler itself would
+         scale that already-shrunk box a second time. */
+      frame.style.transformOrigin = 'top left';
+      frame.style.transform = 'scale(' + scale + ')';
+      frameScaler.style.width = (naturalW * scale) + 'px';
+      frameScaler.style.height = (naturalH * scale) + 'px';
+    }
+  }
+  var fitFrameResizeTimer;
+  window.addEventListener('resize', function () {
+    clearTimeout(fitFrameResizeTimer);
+    fitFrameResizeTimer = setTimeout(fitFrame, 120);
+  });
+  if (document.fonts && document.fonts.ready) { document.fonts.ready.then(fitFrame); }
+
+  function resetTriage() {
+    triageQueue = appState.challenge ? [appState.challenge] : [];
+    triageDone = [];
+    counts.control = 0; counts.influence = 0; counts.nocontrol = 0; history = [];
+    updateTriageCard(); updatePiles(); updateUndoBtn();
+  }
+  function updateTriageCard() {
+    var cur = triageQueue.length ? triageQueue[0] : null;
+    document.getElementById('triageCounter').textContent = cur ? ('פריט ' + (triageDone.length + 1)) : (triageDone.length ? 'הכול מסווג' : 'עדיין ריק');
+    document.getElementById('triageCardText').textContent = cur || 'הוסיפי מחשבה למעלה כדי להתחיל למיין';
+    document.querySelectorAll('.cat-btn').forEach(function (b) {
+      b.disabled = !cur;
+      b.style.opacity = cur ? '1' : '.4';
+      b.style.pointerEvents = cur ? 'auto' : 'none';
+    });
+  }
+  function updatePiles() {
+    document.getElementById('pileControl').textContent = counts.control;
+    document.getElementById('pileInfluence').textContent = counts.influence;
+    document.getElementById('pileNoControl').textContent = counts.nocontrol;
+  }
+  function updateUndoBtn() {
+    document.getElementById('undoTriageBtn').disabled = history.length === 0;
+  }
+  function finishTriage() {
+    document.getElementById('sumHeadline').textContent = triageDone.length ? ('פרקת ' + triageDone.length + ' מחשבות') : 'עוד לא פרקת כלום';
+    document.getElementById('sumControlCount').textContent = counts.control;
+    document.getElementById('sumInfluenceCount').textContent = counts.influence;
+    document.getElementById('sumNoControlCount').textContent = counts.nocontrol;
+    navigateTo('summary');
+  }
+
+  document.querySelectorAll('[data-goto]').forEach(function (btn) {
+    btn.addEventListener('click', function () { navigateTo(btn.getAttribute('data-goto')); });
+  });
+
+  function addTriageItem() {
+    var input = document.getElementById('triageAddInput');
+    var text = input.value.trim();
+    if (!text) return;
+    triageQueue.push(text);
+    input.value = '';
+    updateTriageCard();
+  }
+  document.getElementById('triageAddBtn').addEventListener('click', addTriageItem);
+  document.getElementById('triageAddInput').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); addTriageItem(); }
+  });
+
+  document.querySelectorAll('.cat-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (!triageQueue.length) return;
+      var cat = btn.getAttribute('data-cat');
+      var text = triageQueue.shift();
+      triageDone.push({ text: text, cat: cat });
+      counts[cat]++;
+      history.push(cat);
+      updateUndoBtn();
+      var card = document.getElementById('triageCard');
+      card.classList.add('flying');
+      setTimeout(function () {
+        updatePiles();
+        updateTriageCard();
+        card.classList.remove('flying');
+      }, 220);
+    });
+  });
+  document.getElementById('finishTriageBtn').addEventListener('click', finishTriage);
+  document.getElementById('undoTriageBtn').addEventListener('click', function () {
+    if (!history.length) return;
+    var cat = history.pop();
+    var entry = triageDone.pop();
+    counts[cat]--;
+    triageQueue.unshift(entry.text);
+    document.getElementById('triageCard').classList.remove('flying');
+    updateTriageCard();
+    updatePiles();
+    updateUndoBtn();
+  });
+
+  var fallbackLabSteps = [];
+  function renderLabSteps() {
+    /* steps the teacher actually generated in GROW win over the canned preset list */
+    var derived = growDerivedSteps();
+    var steps = derived.length ? derived : fallbackLabSteps;
+    document.getElementById('labSteps').innerHTML = steps.map(function (s) {
+      return '<div class="ms-row"><div class="ms-left"><span class="chk"></span><span>' + esc(s.text) + '</span></div><div class="ms-chips"><span class="size-chip">' + (s.size || 'S') + '</span><span class="month-chip">' + esc(s.month) + '</span></div></div>';
+    }).join('');
+  }
+
+  function renderLab(c) {
+    document.getElementById('labChip').textContent = c.chip;
+    fallbackLabSteps = c.steps || [];
+    wizardData = defaultWizardData(c.wizardKey, c.freeLabel);
+    growData = defaultGrowData(c.wizardKey);
+    growStep = 0;
+    renderLabSteps();
+    showGrowPhase();
+    labScrim.classList.add('open');
+    labDrawer.classList.add('open');
+    setStage(4);
+  }
+  function openLab(key) { renderLab({ chip: labContent[key].chip, steps: labContent[key].steps, wizardKey: key }); }
+  function labContentFor(el) {
+    var key = el.getAttribute('data-lab');
+    if (key && labContent[key]) return { chip: labContent[key].chip, steps: labContent[key].steps, wizardKey: key };
+    var label = el.querySelector('.sticky-label').textContent.trim();
+    return {
+      chip: 'אבן גדולה: ' + label,
+      steps: [{ text: 'הצעדים ייגזרו מהאפשרויות שתעלי בשלב החשיבה', month: 'ממתין ל-GROW', size: 'S' }],
+      wizardKey: null,
+      freeLabel: label
+    };
+  }
+  document.getElementById('growNextBtn').addEventListener('click', function () {
+    commitGrowStep();
+    if (growStep === GROW_STEPS.length - 1) {
+      showSmartPhase();
+    } else {
+      growStep++;
+      renderGrowStep();
+    }
+  });
+  document.getElementById('growBackBtn').addEventListener('click', function () {
+    if (growStep === 0) return;
+    commitGrowStep();
+    growStep--;
+    renderGrowStep();
+  });
+  function bindExplainer(btnId, boxId, label) {
+    document.getElementById(btnId).addEventListener('click', function () {
+      var box = document.getElementById(boxId);
+      var open = box.style.display !== 'none';
+      box.style.display = open ? 'none' : 'block';
+      this.setAttribute('aria-expanded', open ? 'false' : 'true');
+      this.textContent = label + (open ? ' ▾' : ' ▴');
+    });
+  }
+  bindExplainer('growExplainerBtn', 'growExplainer', 'מה זה GROW ואיך זה עוזר לי?');
+  bindExplainer('smartExplainerBtn', 'smartExplainer', 'מה זה SMART ולמה עכשיו?');
+
+  document.getElementById('wizardNextBtn').addEventListener('click', function () {
+    commitWizardStep();
+    if (wizardStep === WIZARD_STEPS.length - 1) {
+      finishWizard();
+    } else {
+      wizardStep++;
+      renderWizardStep();
+    }
+  });
+  document.getElementById('wizardBackBtn').addEventListener('click', function () {
+    commitWizardStep();
+    if (wizardStep === 0) { showGrowPhase(); return; }
+    wizardStep--;
+    renderWizardStep();
+  });
+  document.getElementById('wizardEditBtn').addEventListener('click', function () {
+    wizardStep = 0;
+    showWizardMode();
+    renderWizardStep();
+  });
+  document.getElementById('labCloseBtn').addEventListener('click', function () { closeLab(); setStage(3); });
+  labScrim.addEventListener('click', function () { closeLab(); setStage(3); });
+  document.getElementById('labCommitBtn').addEventListener('click', function () {
+    var d = new Date(wizardData.date);
+    MILESTONES.push({ date: isNaN(d) ? new Date(TODAY_DEMO) : d, text: wizardData.s || 'יעד חדש', size: 'M', done: false });
+    /* every GROW step the teacher assigned a month to becomes its own dated milestone */
+    var scheduled = 0;
+    growDerivedSteps().forEach(function (s) {
+      if (!s.schedMonth) return;
+      var sd = schoolMonthDate(s.schedMonth);
+      if (!sd) return;
+      MILESTONES.push({ date: sd, text: s.text, size: s.size || 'S', done: false });
+      scheduled++;
+    });
+    closeLab();
+    navigateTo('canvas');
+    var msg = 'שובץ בציר הזמן' + (wizardData.date ? ' · ' + formatHeDate(wizardData.date) : '');
+    if (scheduled) msg += ' · ' + (scheduled === 1 ? 'ועוד צעד אחד' : 'ועוד ' + scheduled + ' צעדים');
+    showToast(msg);
+  });
+
+  function updateBigState(el, isBig) {
+    var wasBig = el.classList.contains('big');
+    if (isBig && !wasBig) {
+      el.classList.add('big');
+      if (!el.querySelector('.badge-rock')) {
+        var b = document.createElement('div');
+        b.className = 'badge-rock';
+        b.textContent = 'אבן גדולה';
+        el.insertBefore(b, el.firstChild);
+      }
+      el.tabIndex = 0;
+    } else if (!isBig && wasBig) {
+      el.classList.remove('big');
+      var badge = el.querySelector('.badge-rock');
+      if (badge) badge.remove();
+      el.tabIndex = -1;
+    }
+  }
+
+  var funnelBuilt = false;
+  function updateFunnelEmptyHint() {
+    var hasStickies = !!funnelMatrix.querySelector('.sticky');
+    document.getElementById('funnelEmptyHint').style.display = hasStickies ? 'none' : 'flex';
+  }
+  function scatterPosition() {
+    var maxRight = 1080 - 164 - 30;
+    var maxTop = 500 - 92 - 30;
+    var r = 20 + Math.random() * maxRight;
+    var t = 20 + Math.random() * maxTop;
+    var rot = (Math.random() * 8 - 4).toFixed(1);
+    return 'right:' + Math.round(r) + 'px; top:' + Math.round(t) + 'px; transform:rotate(' + rot + 'deg);';
+  }
+  function addFunnelSticky(text) {
+    var el = document.createElement('div');
+    el.className = 'sticky';
+    el.tabIndex = -1;
+    el.setAttribute('style', scatterPosition());
+    el.innerHTML = '<span class="size-badge">S</span><span class="sticky-label"></span>';
+    el.querySelector('.sticky-label').textContent = text;
+    funnelMatrix.appendChild(el);
+    initStickyDragOn(el);
+    updateFunnelEmptyHint();
+    return el;
+  }
+  function ensureFunnelBuilt() {
+    if (funnelBuilt) return;
+    triageDone.filter(function (d) { return d.cat === 'control' || d.cat === 'influence'; })
+      .forEach(function (d) { addFunnelSticky(d.text); });
+    funnelBuilt = true;
+    updateFunnelEmptyHint();
+  }
+  function resetFunnel() {
+    funnelMatrix.querySelectorAll('.sticky').forEach(function (el) { el.remove(); });
+    funnelBuilt = false;
+    updateFunnelEmptyHint();
+  }
+
+  /* the app frame is visually scaled by fitFrame(), so screen-pixel deltas must be
+     divided by that scale before they become CSS-pixel positions — otherwise dragging
+     under-shoots and the clamp (computed from the scaled width) makes the top-right
+     "big rock" quadrant physically unreachable at any scale below 1 */
+  function currentFrameScale() {
+    var m = new DOMMatrixReadOnly(getComputedStyle(frame).transform);
+    return m.a || 1;
+  }
+  function initStickyDragOn(el) {
+    var state = null;
+    el.addEventListener('pointerdown', function (e) {
+      var scale = currentFrameScale();
+      var mRect = funnelMatrix.getBoundingClientRect();
+      var eRect = el.getBoundingClientRect();
+      state = {
+        startX: e.clientX, startY: e.clientY, scale: scale, moved: false,
+        startLeft: (eRect.left - mRect.left) / scale,
+        startTop: (eRect.top - mRect.top) / scale
+      };
+      el.style.left = state.startLeft + 'px';
+      el.style.top = state.startTop + 'px';
+      el.style.right = 'auto';
+      el.style.zIndex = 50;
+      try { el.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+    el.addEventListener('pointermove', function (e) {
+      if (!state) return;
+      var rawDx = e.clientX - state.startX, rawDy = e.clientY - state.startY;
+      if (Math.abs(rawDx) > 4 || Math.abs(rawDy) > 4) state.moved = true;
+      if (!state.moved) return;
+      var dx = rawDx / state.scale, dy = rawDy / state.scale;
+      /* offsetWidth/offsetHeight are unscaled, so clamp against the unscaled matrix box */
+      var maxLeft = funnelMatrix.offsetWidth - el.offsetWidth;
+      var maxTop = funnelMatrix.offsetHeight - el.offsetHeight;
+      el.style.left = Math.min(Math.max(state.startLeft + dx, 0), maxLeft) + 'px';
+      el.style.top = Math.min(Math.max(state.startTop + dy, 0), maxTop) + 'px';
+    });
+    el.addEventListener('pointerup', function (e) {
+      if (!state) return;
+      try { el.releasePointerCapture(e.pointerId); } catch (err) {}
+      el.style.zIndex = '';
+      if (state.moved) {
+        /* compare in unscaled layout coordinates (funnelMatrix is the offsetParent) */
+        var cx = el.offsetLeft + el.offsetWidth / 2;
+        var cy = el.offsetTop + el.offsetHeight / 2;
+        updateBigState(el, cx > funnelMatrix.offsetWidth / 2 && cy < funnelMatrix.offsetHeight / 2);
+      } else if (el.classList.contains('big')) {
+        renderLab(labContentFor(el));
+      }
+      state = null;
+    });
+    el.addEventListener('keydown', function (e) {
+      if ((e.key === 'Enter' || e.key === ' ') && el.classList.contains('big')) {
+        e.preventDefault();
+        renderLab(labContentFor(el));
+      }
+    });
+  }
+
+  document.getElementById('funnelAddBtn').addEventListener('click', function () {
+    var input = document.getElementById('funnelAddInput');
+    var text = input.value.trim();
+    if (!text) return;
+    addFunnelSticky(text);
+    input.value = '';
+  });
+  document.getElementById('funnelAddInput').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); document.getElementById('funnelAddBtn').click(); }
+  });
+
+  function updateReflBadge() {
+    document.getElementById('reflBadgeLabel').textContent = belatamLog.length
+      ? ('רפלקציה חודשית · ' + belatamLog.length + ' בלת"ם')
+      : 'רפלקציה חודשית';
+  }
+  function openReflection() {
+    var seesEl = document.getElementById('reflSees');
+    if (belatamLog.length) {
+      seesEl.innerHTML = belatamLog.length + ' רגעי בלת"ם החודש:<ul style="margin:6px 0 0; padding-inline-start:18px;">' +
+        belatamLog.map(function (b) { return '<li style="margin-bottom:3px;">' + esc(b.text) + '</li>'; }).join('') + '</ul>';
+    } else {
+      seesEl.textContent = 'לא תיעדת אף רגע בלת"ם החודש — אולי סימן שהיה חודש רגוע.';
+    }
+    document.getElementById('reflThinks').value = appState.reflectionNote ? appState.reflectionNote.thinks : '';
+    document.getElementById('reflWonders').value = appState.reflectionNote ? appState.reflectionNote.wonders : '';
+    reflScrim.classList.add('open');
+    reflModal.classList.add('open');
+  }
+  document.getElementById('reflBadge').addEventListener('click', openReflection);
+  document.getElementById('reflCloseBtn').addEventListener('click', closeRefl);
+  document.getElementById('reflLaterBtn').addEventListener('click', closeRefl);
+  reflScrim.addEventListener('click', closeRefl);
+  document.getElementById('reflCommitBtn').addEventListener('click', function () {
+    appState.reflectionNote = {
+      thinks: document.getElementById('reflThinks').value.trim(),
+      wonders: document.getElementById('reflWonders').value.trim()
+    };
+    belatamLog = [];
+    updateReflBadge();
+    closeRefl();
+    showToast('שולב בקנבס');
+  });
+
+  document.getElementById('snapshotBtn').addEventListener('click', function () { snapshotScrim.classList.add('open'); snapshotModal.classList.add('open'); });
+  document.getElementById('snapshotCloseBtn').addEventListener('click', closeSnapshot);
+  document.getElementById('snapshotCloseBtn2').addEventListener('click', closeSnapshot);
+  snapshotScrim.addEventListener('click', closeSnapshot);
+  document.getElementById('snapshotPrintBtn').addEventListener('click', function () { window.print(); });
+
+  document.getElementById('constraintBtn').addEventListener('click', function () { closeTemplates(); constraintPop.classList.toggle('open'); });
+  document.getElementById('constraintAddBtn').addEventListener('click', function () {
+    addConstraint(
+      document.getElementById('constraintLabel').value.trim(),
+      document.getElementById('constraintStart').value,
+      document.getElementById('constraintEnd').value
+    );
+  });
+  document.getElementById('constraintSuggestBtn').addEventListener('click', function () {
+    addConstraint('השתלמות מוסדית', '2027-02-09', '2027-02-11');
+  });
+
+  var TEMPLATE_SIZES = { 'ערב הורים': 'M', 'שבוע מסכם': 'L', 'חג / חנוכה': 'S' };
+  document.getElementById('templatesBtn').addEventListener('click', function () { closeConstraintPop(); templatesPop.classList.toggle('open'); });
+  document.querySelectorAll('.template-add').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var name = btn.getAttribute('data-template');
+      closeTemplates();
+      var d = new Date(TODAY_DEMO);
+      d.setMonth(d.getMonth() + 1);
+      MILESTONES.push({ date: d, text: name, size: TEMPLATE_SIZES[name] || 'S', done: false });
+      renderTimeline();
+      showToast('נוסף לציר הזמן: ' + name);
+    });
+  });
+
+  document.getElementById('yearTabBtn').addEventListener('click', showYearView);
+  document.getElementById('weekTabBtn').addEventListener('click', showWeekView);
+  document.querySelectorAll('[data-weektab="year"]').forEach(function (b) { b.addEventListener('click', showYearView); });
+
+  document.getElementById('fabBtn').addEventListener('click', function () { fabPop.classList.toggle('open'); });
+  document.getElementById('fabSaveBtn').addEventListener('click', function () {
+    var text = document.getElementById('fabText').value.trim();
+    closeFab();
+    document.getElementById('fabText').value = '';
+    if (!text) return;
+    belatamLog.push({ text: text });
+    updateReflBadge();
+    showToast('נשמר · תועד בלת"ם (' + belatamLog.length + ' החודש)');
+  });
+
+  document.querySelectorAll('.step-dot').forEach(function (dot) {
+    dot.addEventListener('click', function () {
+      var stage = parseInt(dot.getAttribute('data-stage'), 10);
+      var map = { 1: 'main', 2: 'triage', 3: 'funnel', 4: 'funnel', 5: 'canvas' };
+      navigateTo(map[stage]);
+      if (stage === 4) openLab('reading');
+    });
+  });
+
+  document.getElementById('resetDemo').addEventListener('click', function () {
+    resetFunnel();
+    constraints.length = 0;
+    belatamLog = [];
+    appState.challenge = '';
+    appState.reflectionNote = null;
+    MILESTONES = cloneMilestones();
+    document.getElementById('challengeInput').value = '';
+    updateReflBadge();
+    document.getElementById('layerNational').classList.add('on');
+    document.getElementById('layerConstraints').classList.add('on');
+    expandedPhaseIdx = findTodayPhaseIndex();
+    renderTimeline();
+    navigateTo('main');
+  });
+
+  resetTriage();
+  navigateTo('main');
+})();
+</script>
